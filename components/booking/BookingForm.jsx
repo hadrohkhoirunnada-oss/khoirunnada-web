@@ -315,7 +315,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
               id="notes"
               value={form.notes}
               onChange={(event) => updateForm("notes", event.target.value)}
-              placeholder="Contoh: Request Lagu, Shalawat, dll."
+              placeholder="Contoh: Request Lagu, Sholawat, dll."
               className={`${textareaClassName} min-h-28`}
             />
           </div>

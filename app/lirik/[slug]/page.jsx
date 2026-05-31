@@ -34,7 +34,7 @@ export default async function Page({ params }) {
   }
 
   return (
-    <PageContainer className="pb-28 pt-7">
+    <PageContainer className="pb-28 pt-5">
       <LyricsDetail lyric={lyric} />
     </PageContainer>
   );

@@ -56,9 +56,9 @@ export default function LyricsCard({ lyric }) {
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent" />
       <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-1px_0_rgba(245,197,66,0.06)]" />
 
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div className="flex min-w-0 gap-3">
-          <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-300/16 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
+      <div className="relative z-10 flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-300/16 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
             <BookIcon className="h-5 w-5" />
           </span>
 
@@ -67,7 +67,7 @@ export default function LyricsCard({ lyric }) {
               {lyric.category}
             </p>
 
-            <h2 className="mt-3 text-[1.2rem] font-black leading-tight tracking-[-0.045em] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]">
+            <h2 className="mt-2 line-clamp-2 text-[1.18rem] font-black leading-tight tracking-[-0.045em] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.65)]">
               {lyric.title}
             </h2>
           </div>
@@ -77,10 +77,6 @@ export default function LyricsCard({ lyric }) {
           <ArrowIcon className="h-4 w-4" />
         </span>
       </div>
-
-      <p className="relative z-10 mt-4 text-sm font-medium leading-7 text-slate-100/85 drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
-        {lyric.shortDescription}
-      </p>
     </Link>
   );
 }

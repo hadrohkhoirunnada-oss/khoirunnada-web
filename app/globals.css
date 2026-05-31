@@ -234,3 +234,32 @@ a {
     transform: translateX(260px) rotate(18deg);
   }
 }
+
+@keyframes galleryShine {
+  0% {
+    transform: translate3d(-140%, -100%, 0) rotate(32deg);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0;
+  }
+
+  32% {
+    opacity: 1;
+  }
+
+  52% {
+    opacity: 0.95;
+  }
+
+  72% {
+    transform: translate3d(260%, 180%, 0) rotate(32deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translate3d(260%, 180%, 0) rotate(32deg);
+    opacity: 0;
+  }
+}
