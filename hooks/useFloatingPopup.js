@@ -6,17 +6,24 @@ export default function useFloatingPopup() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    let hideTimeout;
+
+    const showPopup = () => {
       setIsVisible(true);
 
-      const timeout = setTimeout(() => {
+      hideTimeout = setTimeout(() => {
         setIsVisible(false);
       }, 2000);
+    };
 
-      return () => clearTimeout(timeout);
-    }, 6000);
+    const firstPopup = setTimeout(showPopup, 1500);
+    const interval = setInterval(showPopup, 6000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(firstPopup);
+      clearTimeout(hideTimeout);
+      clearInterval(interval);
+    };
   }, []);
 
   return isVisible;

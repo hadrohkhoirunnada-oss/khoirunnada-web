@@ -1,9 +1,9 @@
 import Image from "next/image";
 
-export default function LogoBrand({ size = 92 }) {
+export default function LogoBrand({ size = 92, className = "mx-auto" }) {
   return (
     <div
-      className="relative mx-auto"
+      className={`relative shrink-0 ${className}`}
       style={{
         width: size,
         height: size,

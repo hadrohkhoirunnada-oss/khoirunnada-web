@@ -1,13 +1,13 @@
 import PageContainer from "@/components/layout/PageContainer";
-import EmptyState from "@/components/ui/EmptyState";
+import LyricsHero from "@/components/lyrics/LyricsHero";
+import LyricsList from "@/components/lyrics/LyricsList";
+import { initialLyrics } from "@/data/initialLyrics";
 
 export default function Page() {
   return (
-    <PageContainer>
-      <EmptyState
-        title="Lirik Qasidah"
-        description="Halaman ini sudah disiapkan sebagai fondasi dan akan dikembangkan pada step berikutnya."
-      />
+    <PageContainer className="space-y-6 pb-28 pt-0">
+      <LyricsHero />
+      <LyricsList lyrics={initialLyrics} />
     </PageContainer>
   );
 }

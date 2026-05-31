@@ -1,6 +1,8 @@
-export default function PageContainer({ children }) {
+export default function PageContainer({ children, className = "" }) {
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[480px] px-5 py-8 text-white">
+    <main
+      className={`relative z-10 mx-auto w-full px-5 py-8 text-white ${className}`}
+    >
       {children}
     </main>
   );

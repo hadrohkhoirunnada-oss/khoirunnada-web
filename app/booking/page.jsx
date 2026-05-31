@@ -1,13 +1,12 @@
 import PageContainer from "@/components/layout/PageContainer";
-import EmptyState from "@/components/ui/EmptyState";
+import BookingHero from "@/components/booking/BookingHero";
+import BookingForm from "@/components/booking/BookingForm";
 
 export default function Page() {
   return (
-    <PageContainer>
-      <EmptyState
-        title="Booking Khoirunnada"
-        description="Halaman ini sudah disiapkan sebagai fondasi dan akan dikembangkan pada step berikutnya."
-      />
+    <PageContainer className="space-y-6 pb-10 pt-0">
+      <BookingHero />
+      <BookingForm />
     </PageContainer>
   );
 }
