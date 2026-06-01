@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const FILTER_CATEGORIES = [
@@ -94,6 +95,7 @@ export default function LyricsSearch({
   selectedCategory = "all",
   onCategoryChange,
 }) {
+  const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const activeCategory =
@@ -101,8 +103,14 @@ export default function LyricsSearch({
     FILTER_CATEGORIES[0];
 
   const handleCategoryChange = (categoryValue) => {
-    onCategoryChange?.(categoryValue);
     setIsFilterOpen(false);
+
+    if (categoryValue === "maulid-lengkap") {
+      router.push("/lirik/maulid");
+      return;
+    }
+
+    onCategoryChange?.(categoryValue);
   };
 
   return (
@@ -119,7 +127,7 @@ export default function LyricsSearch({
             </p>
 
             <p className="mt-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">
-              Temukan qasidah cepat
+              Temukan bacaan cepat
             </p>
           </div>
 

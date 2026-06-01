@@ -104,7 +104,7 @@ export default function LyricsHero() {
                 </p>
 
                 <div className="mt-7 flex w-full justify-center gap-2.5">
-                    {["Arab", "Latin", "Terjemah"].map((item) => (
+                    {["Qosidah", "Wirid", "Maulid"].map((item) => (
                         <span
                             key={item}
                             className="inline-flex min-h-9 items-center justify-center rounded-full border border-amber-300/14 bg-black/28 px-4 text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-amber-200 shadow-lg shadow-black/15 backdrop-blur-xl"

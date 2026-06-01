@@ -1,17 +1,21 @@
 import { notFound } from "next/navigation";
 import PageContainer from "@/components/layout/PageContainer";
 import LyricsDetail from "@/components/lyrics/LyricsDetail";
+import MaulidSectionList from "@/components/lyrics/MaulidSectionList";
 import { initialLyrics } from "@/data/initialLyrics";
+import { maulidCollections } from "@/data/maulidCollections";
+
+const allLyrics = [...initialLyrics, ...maulidCollections];
 
 export function generateStaticParams() {
-  return initialLyrics.map((lyric) => ({
+  return allLyrics.map((lyric) => ({
     slug: lyric.slug,
   }));
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const lyric = initialLyrics.find((item) => item.slug === slug);
+  const lyric = allLyrics.find((item) => item.slug === slug);
 
   if (!lyric) {
     return {
@@ -27,15 +31,21 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const { slug } = await params;
-  const lyric = initialLyrics.find((item) => item.slug === slug);
+  const lyric = allLyrics.find((item) => item.slug === slug);
 
   if (!lyric) {
     notFound();
   }
 
+  const isMaulidCollection = lyric.qasidahCategory === "maulid-lengkap";
+
   return (
-    <PageContainer className="pb-28 pt-5">
-      <LyricsDetail lyric={lyric} />
+    <PageContainer className="pb-28 pt-0">
+      {isMaulidCollection ? (
+        <MaulidSectionList maulid={lyric} />
+      ) : (
+        <LyricsDetail lyric={lyric} />
+      )}
     </PageContainer>
   );
 }

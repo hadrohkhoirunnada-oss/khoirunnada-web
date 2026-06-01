@@ -1,3 +1,1 @@
-import { maulidDibai } from "@/data/maulidDibai";
-
-export const initialLyrics = [maulidDibai];
+export const initialLyrics = [];
