@@ -40,7 +40,7 @@ export default async function Page({ params }) {
   const isMaulidCollection = lyric.qasidahCategory === "maulid-lengkap";
 
   return (
-    <PageContainer className="pb-28 pt-0">
+    <PageContainer className="pb-28 pt-4">
       {isMaulidCollection ? (
         <MaulidSectionList maulid={lyric} />
       ) : (

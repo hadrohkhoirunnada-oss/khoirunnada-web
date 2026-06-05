@@ -17,6 +17,10 @@ const FILTER_CATEGORIES = [
     value: "qosidah-jawa",
   },
   {
+    label: "Wirid Lengkap",
+    value: "wirid-lengkap",
+  },
+  {
     label: "Maulid Lengkap",
     value: "maulid-lengkap",
   },
@@ -123,7 +127,7 @@ export default function LyricsSearch({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
-              Cari Lirik
+              Cari Bacaan
             </p>
 
             <p className="mt-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">
@@ -140,7 +144,7 @@ export default function LyricsSearch({
                   ? "border-amber-300/45 bg-amber-300/10 shadow-[0_0_24px_rgba(245,197,66,0.12)]"
                   : "border-amber-300/16"
               }`}
-              aria-label="Filter kategori lirik"
+              aria-label="Filter kategori bacaan"
               aria-expanded={isFilterOpen}
             >
               <FilterIcon className="h-5 w-5" />
@@ -201,7 +205,7 @@ export default function LyricsSearch({
             type="search"
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="Cari judul qasidah..."
+            placeholder="Cari judul bacaan..."
             className="relative z-10 min-h-13 w-full bg-transparent px-4 pr-12 text-sm font-semibold text-white outline-none placeholder:text-slate-500"
           />
 

@@ -10,6 +10,7 @@ const initialForm = {
   name: "",
   whatsapp: "",
   eventType: "",
+  otherEventType: "",
   eventDate: "",
   eventTime: "",
   location: "",
@@ -124,16 +125,36 @@ export default function FloatingBookingModal({ isOpen, onClose }) {
     return activeAdmins.find((admin) => admin.id === selectedAdminId);
   }, [activeAdmins, selectedAdminId]);
 
+  const isOtherEventType = form.eventType === "Lainnya";
+
   const updateForm = (field, value) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setForm((current) => {
+      const nextForm = {
+        ...current,
+        [field]: value,
+      };
+
+      if (field === "eventType" && value !== "Lainnya") {
+        nextForm.otherEventType = "";
+      }
+
+      return nextForm;
+    });
   };
 
   const closeModal = () => {
     onClose();
     setSelectedAdminId("");
+  };
+
+  const getEventTypeText = () => {
+    if (!isOtherEventType) {
+      return form.eventType;
+    }
+
+    const otherEventType = form.otherEventType.trim();
+
+    return otherEventType ? `Lainnya - ${otherEventType}` : "Lainnya";
   };
 
   const buildMessage = () => {
@@ -146,7 +167,7 @@ Nama: ${form.name}
 No. WhatsApp: ${form.whatsapp}
 
 Detail Acara:
-Jenis Acara: ${form.eventType}
+Jenis Acara: ${getEventTypeText()}
 Tanggal: ${form.eventDate}
 Waktu: ${form.eventTime || "-"}
 Lokasi: ${form.location}
@@ -172,11 +193,12 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
       !form.name ||
       !form.whatsapp ||
       !form.eventType ||
+      (isOtherEventType && !form.otherEventType.trim()) ||
       !form.eventDate ||
       !form.location
     ) {
       alert(
-        "Mohon lengkapi nama, nomor WhatsApp, jenis acara, tanggal, dan lokasi."
+        "Mohon lengkapi nama, nomor WhatsApp, jenis acara, tanggal, dan lokasi. Jika memilih Lainnya, isi juga detail jenis acaranya."
       );
       return;
     }
@@ -323,6 +345,25 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                 value={form.eventType}
                 onChange={(value) => updateForm("eventType", value)}
               />
+
+              {isOtherEventType ? (
+                <div>
+                  <FieldLabel htmlFor="floating-other-event-type">
+                    Jenis Acara Lainnya
+                  </FieldLabel>
+
+                  <input
+                    id="floating-other-event-type"
+                    type="text"
+                    value={form.otherEventType}
+                    onChange={(event) =>
+                      updateForm("otherEventType", event.target.value)
+                    }
+                    placeholder="Contoh: Haul, Aqiqah, Tasyakuran keluarga"
+                    className={fieldClassName}
+                  />
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>

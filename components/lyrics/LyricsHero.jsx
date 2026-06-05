@@ -80,7 +80,7 @@ export default function LyricsHero() {
                                 Pusat Bacaan
                             </p>
                             <p className="mt-0.5 text-xs font-bold text-slate-300">
-                                Qasidah & Sholawat
+                                Qosidah & Wirid
                             </p>
                         </div>
                     </div>
@@ -95,12 +95,12 @@ export default function LyricsHero() {
                 </p>
 
                 <h1 className="mt-5 max-w-[330px] text-[2.35rem] font-black leading-[1.04] tracking-[-0.085em] text-white drop-shadow-[0_12px_35px_rgba(0,0,0,0.65)]">
-                    Lirik Qasidah
+                    Qosidah & Wirid
                 </h1>
 
                 <p className="mt-5 max-w-[350px] text-[0.98rem] font-semibold leading-8 text-slate-300">
-                    Pusat lirik sholawat dan qasidah Khoirunnada. Dibuat agar nyaman
-                    dibaca dari HP saat latihan maupun majelis.
+                    Pusat bacaan qosidah, sholawat, maulid, dan wirid Khoirunnada.
+                    Dibuat agar nyaman dibaca dari HP saat latihan maupun majelis.
                 </p>
 
                 <div className="mt-7 flex w-full justify-center gap-2.5">
