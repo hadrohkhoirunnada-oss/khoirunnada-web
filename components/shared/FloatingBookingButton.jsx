@@ -5,34 +5,59 @@ import { usePathname } from "next/navigation";
 import useFloatingPopup from "@/hooks/useFloatingPopup";
 import WhatsAppIcon from "@/components/shared/WhatsAppIcon";
 import FloatingBookingModal from "@/components/shared/FloatingBookingModal";
+import {
+  DEFAULT_SITE_CONTACT_SETTINGS,
+  getSiteContactSettings,
+} from "@/services/siteSettingsService";
 
 export default function FloatingBookingButton() {
   const pathname = usePathname();
   const isPopupVisible = useFloatingPopup();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
+  const [popupLabel, setPopupLabel] = useState(
+    DEFAULT_SITE_CONTACT_SETTINGS.whatsappLabel
+  );
 
   const isLyricsDetailPage = pathname?.startsWith("/lirik/");
 
   useEffect(() => {
-    const syncMenuState = (event) => {
-      const menuOpenFromEvent = Boolean(event?.detail?.isOpen);
-      const menuOpenFromDocument =
-        document.documentElement.dataset.publicMenuOpen === "true";
+    if (isLyricsDetailPage) {
+      return;
+    }
 
-      setIsPublicMenuOpen(menuOpenFromEvent || menuOpenFromDocument);
-    };
+    let isMounted = true;
 
-    syncMenuState();
+    async function loadContactSettings() {
+      try {
+        const settings = await getSiteContactSettings();
 
-    window.addEventListener("public-menu-state-change", syncMenuState);
+        if (!isMounted) {
+          return;
+        }
+
+        setPopupLabel(
+          settings?.whatsappLabel?.trim() ||
+            DEFAULT_SITE_CONTACT_SETTINGS.whatsappLabel
+        );
+      } catch (error) {
+        console.error("Gagal memuat teks popup WhatsApp:", error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPopupLabel(DEFAULT_SITE_CONTACT_SETTINGS.whatsappLabel);
+      }
+    }
+
+    loadContactSettings();
 
     return () => {
-      window.removeEventListener("public-menu-state-change", syncMenuState);
+      isMounted = false;
     };
-  }, []);
+  }, [isLyricsDetailPage]);
 
-  if (isLyricsDetailPage || isPublicMenuOpen) {
+  if (isLyricsDetailPage) {
     return null;
   }
 
@@ -43,7 +68,7 @@ export default function FloatingBookingButton() {
           {isPopupVisible && !isModalOpen ? (
             <div className="absolute bottom-[3.65rem] right-0 animate-[bookingPopup_2s_ease-in-out] rounded-xl border border-emerald-400/20 bg-[#07110b]/95 px-3 py-2 text-[0.72rem] font-semibold text-emerald-50 shadow-xl shadow-black/35 backdrop-blur">
               <span className="absolute -bottom-1 right-5 h-2.5 w-2.5 rotate-45 border-b border-r border-emerald-400/20 bg-[#07110b]" />
-              Booking Kami Disini
+              {popupLabel}
             </div>
           ) : null}
 

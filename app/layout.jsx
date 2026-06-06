@@ -30,6 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="id"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${plusJakarta.variable} ${notoNaskhArabic.variable}`}
     >

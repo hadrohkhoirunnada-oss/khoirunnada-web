@@ -11,10 +11,6 @@ const navItems = [
     href: "/admin",
   },
   {
-    label: "Booking",
-    href: "/admin/booking-admin",
-  },
-  {
     label: "Qasidah",
     href: "/admin/qasidah",
   },

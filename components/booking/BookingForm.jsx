@@ -1,11 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BookingAdminSelect from "@/components/booking/BookingAdminSelect";
 import EventTypeSelect from "@/components/booking/EventTypeSelect";
 import BookingSuccessHint from "@/components/booking/BookingSuccessHint";
 import { bookingAdmins } from "@/data/bookingAdmins";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import {
+  DEFAULT_SITE_CONTACT_SETTINGS,
+  getSiteContactSettings,
+  normalizeWhatsappAdmins,
+} from "@/services/siteSettingsService";
 
 const initialForm = {
   name: "",
@@ -110,13 +115,39 @@ function ClockFieldIcon({ className = "" }) {
 }
 
 export default function BookingForm() {
-  const activeAdmins = useMemo(() => {
+  const [contactSettings, setContactSettings] = useState(
+    DEFAULT_SITE_CONTACT_SETTINGS
+  );
+
+  const fallbackAdmins = useMemo(() => {
     return bookingAdmins.filter((admin) => admin.isActive);
   }, []);
 
+  const activeAdmins = useMemo(() => {
+    const firestoreAdmins = normalizeWhatsappAdmins(
+      contactSettings.whatsappAdmins,
+      contactSettings
+    )
+      .filter((admin) => admin.isActive)
+      .map((admin) => ({
+        id: admin.id,
+        name: admin.name || "Admin Khoirunnada",
+        label: "Admin Booking",
+        description: "Nomor WhatsApp admin yang terdaftar.",
+        whatsappNumber: admin.whatsappNumber,
+        isActive: true,
+      }));
+
+    if (firestoreAdmins.length > 0) {
+      return firestoreAdmins;
+    }
+
+    return fallbackAdmins;
+  }, [contactSettings, fallbackAdmins]);
+
   const firstAdmin = activeAdmins[0];
 
-  const [selectedAdminId, setSelectedAdminId] = useState(firstAdmin?.id || "");
+  const [selectedAdminId, setSelectedAdminId] = useState("");
   const [form, setForm] = useState(initialForm);
 
   const selectedAdmin = useMemo(() => {
@@ -126,6 +157,54 @@ export default function BookingForm() {
   }, [activeAdmins, selectedAdminId, firstAdmin]);
 
   const isOtherEventType = form.eventType === "Lainnya";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadContactSettings() {
+      try {
+        const settings = await getSiteContactSettings();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setContactSettings({
+          ...DEFAULT_SITE_CONTACT_SETTINGS,
+          ...settings,
+        });
+      } catch (error) {
+        console.error("Gagal memuat admin booking:", error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setContactSettings(DEFAULT_SITE_CONTACT_SETTINGS);
+      }
+    }
+
+    loadContactSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeAdmins.length === 0) {
+      setSelectedAdminId("");
+      return;
+    }
+
+    const isSelectedAdminStillAvailable = activeAdmins.some(
+      (admin) => admin.id === selectedAdminId
+    );
+
+    if (!selectedAdminId || !isSelectedAdminStillAvailable) {
+      setSelectedAdminId(activeAdmins[0].id);
+    }
+  }, [activeAdmins, selectedAdminId]);
 
   const updateForm = (field, value) => {
     setForm((current) => {
@@ -234,7 +313,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
           </div>
 
           <BookingAdminSelect
-            admins={bookingAdmins}
+            admins={activeAdmins}
             selectedAdminId={selectedAdminId}
             onChange={setSelectedAdminId}
           />

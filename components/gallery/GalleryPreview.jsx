@@ -1,9 +1,9 @@
 const fallbackImages = [
-  "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1592326871020-04f58c1a52f3?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1713239060784-e6ed820a0715?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1565330770968-0240c0046ce3?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1667449626368-a9b1cbf63917?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1729931421786-7bbd6c7d78f6?auto=format&fit=crop&w=900&q=80",
 ];
 
 export default function GalleryPreview({ item, index }) {

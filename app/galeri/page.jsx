@@ -4,8 +4,8 @@ import LogoBrand from "@/components/shared/LogoBrand";
 import { initialGallery } from "@/data/initialGallery";
 
 const heroPhotoStack = [
-  "https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=700&q=80",
-  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=700&q=80",
+  "https://images.unsplash.com/photo-1592326871020-04f58c1a52f3?auto=format&fit=crop&w=700&q=80",
+  "https://images.unsplash.com/photo-1729931421786-7bbd6c7d78f6?auto=format&fit=crop&w=700&q=80",
 ];
 
 function CameraIcon({ className = "" }) {

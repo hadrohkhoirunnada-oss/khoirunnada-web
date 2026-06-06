@@ -3,38 +3,38 @@ import Link from "next/link";
 const galleryPreview = [
   {
     id: 1,
-    title: "Dokumentasi Majelis",
-    category: "Majelis",
+    title: "Suasana Makkah",
+    category: "Makkah",
     image:
-      "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1744711815074-1f12a88cc5d1?auto=format&fit=crop&w=700&q=80",
   },
   {
     id: 2,
-    title: "Penampilan Hadroh",
-    category: "Hadroh",
+    title: "Ka'bah Al-Mukarramah",
+    category: "Ka'bah",
     image:
-      "https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1710695198971-3abdf7fcc82e?auto=format&fit=crop&w=700&q=80",
   },
   {
     id: 3,
-    title: "Momen Sholawat",
-    category: "Sholawat",
+    title: "Masjidil Haram",
+    category: "Haram",
     image:
-      "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1591604157118-b94e2684f857?auto=format&fit=crop&w=700&q=80",
   },
   {
     id: 4,
-    title: "Latihan Rutin",
-    category: "Kegiatan",
+    title: "Masjid Nabawi",
+    category: "Nabawi",
     image:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1768054582993-d60392cab0d9?auto=format&fit=crop&w=700&q=80",
   },
   {
     id: 5,
-    title: "Kebersamaan Anggota",
-    category: "Dokumentasi",
+    title: "Madinah Munawwarah",
+    category: "Madinah",
     image:
-      "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1729931421786-7bbd6c7d78f6?auto=format&fit=crop&w=700&q=80",
   },
 ];
 

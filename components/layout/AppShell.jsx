@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -8,14 +9,22 @@ import FloatingBookingButton from "@/components/shared/FloatingBookingButton";
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
+  const [hasMounted, setHasMounted] = useState(false);
 
-  const isBookingPage = pathname === "/booking";
-  const isAdminPage = pathname.startsWith("/admin");
-  const isLoginPage = pathname === "/login";
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const safePathname = pathname || "";
+
+  const isBookingPage = safePathname === "/booking";
+  const isAdminPage = safePathname.startsWith("/admin");
+  const isLoginPage = safePathname === "/login";
 
   const showHeader = !isAdminPage && !isLoginPage;
   const showFooter = !isAdminPage && !isLoginPage;
-  const showFloatingBooking = !isBookingPage && !isAdminPage && !isLoginPage;
+  const showFloatingBooking =
+    hasMounted && !isBookingPage && !isAdminPage && !isLoginPage;
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#020617] text-white">

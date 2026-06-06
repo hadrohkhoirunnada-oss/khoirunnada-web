@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PUBLIC_NAVIGATION } from "@/constants/navigation";
@@ -52,38 +51,10 @@ function UserAdminIcon({ className = "" }) {
 export default function HamburgerMenu({ isOpen, onClose }) {
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    document.documentElement.dataset.publicMenuOpen = isOpen ? "true" : "false";
-
-    window.dispatchEvent(
-      new CustomEvent("public-menu-state-change", {
-        detail: {
-          isOpen,
-        },
-      })
-    );
-
-    return () => {
-      document.documentElement.dataset.publicMenuOpen = "false";
-
-      window.dispatchEvent(
-        new CustomEvent("public-menu-state-change", {
-          detail: {
-            isOpen: false,
-          },
-        })
-      );
-    };
-  }, [isOpen]);
-
   return (
     <div
       aria-hidden={!isOpen}
-      className={`fixed inset-y-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 overflow-hidden transition-opacity duration-200 ease-out ${
+      className={`fixed inset-y-0 left-1/2 z-[9999] w-full max-w-[480px] -translate-x-1/2 overflow-hidden transition-opacity duration-200 ease-out ${
         isOpen
           ? "pointer-events-auto opacity-100"
           : "pointer-events-none opacity-0"

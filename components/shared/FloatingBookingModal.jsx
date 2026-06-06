@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EventTypeSelect from "@/components/booking/EventTypeSelect";
 import WhatsAppIcon from "@/components/shared/WhatsAppIcon";
 import { bookingAdmins } from "@/data/bookingAdmins";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import {
+  DEFAULT_SITE_CONTACT_SETTINGS,
+  getSiteContactSettings,
+  normalizeWhatsappAdmins,
+} from "@/services/siteSettingsService";
 
 const initialForm = {
   name: "",
@@ -114,9 +119,38 @@ function ClockFieldIcon({ className = "" }) {
 }
 
 export default function FloatingBookingModal({ isOpen, onClose }) {
-  const activeAdmins = useMemo(() => {
+  const [contactSettings, setContactSettings] = useState(
+    DEFAULT_SITE_CONTACT_SETTINGS
+  );
+
+  const [isLoadingContactSettings, setIsLoadingContactSettings] =
+    useState(false);
+
+  const fallbackAdmins = useMemo(() => {
     return bookingAdmins.filter((admin) => admin.isActive);
   }, []);
+
+  const activeAdmins = useMemo(() => {
+    const firestoreAdmins = normalizeWhatsappAdmins(
+      contactSettings.whatsappAdmins,
+      contactSettings
+    )
+      .filter((admin) => admin.isActive)
+      .map((admin) => ({
+        id: admin.id,
+        name: admin.name || "Admin Khoirunnada",
+        label: "Admin Booking",
+        description: "Nomor WhatsApp admin yang terdaftar.",
+        whatsappNumber: admin.whatsappNumber,
+        isActive: true,
+      }));
+
+    if (firestoreAdmins.length > 0) {
+      return firestoreAdmins;
+    }
+
+    return fallbackAdmins;
+  }, [contactSettings, fallbackAdmins]);
 
   const [selectedAdminId, setSelectedAdminId] = useState("");
   const [form, setForm] = useState(initialForm);
@@ -126,6 +160,63 @@ export default function FloatingBookingModal({ isOpen, onClose }) {
   }, [activeAdmins, selectedAdminId]);
 
   const isOtherEventType = form.eventType === "Lainnya";
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadContactSettings() {
+      try {
+        setIsLoadingContactSettings(true);
+
+        const settings = await getSiteContactSettings();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setContactSettings({
+          ...DEFAULT_SITE_CONTACT_SETTINGS,
+          ...settings,
+        });
+      } catch (error) {
+        console.error("Gagal memuat kontak WhatsApp:", error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setContactSettings(DEFAULT_SITE_CONTACT_SETTINGS);
+      } finally {
+        if (isMounted) {
+          setIsLoadingContactSettings(false);
+        }
+      }
+    }
+
+    loadContactSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!selectedAdminId) {
+      return;
+    }
+
+    const isSelectedAdminStillAvailable = activeAdmins.some(
+      (admin) => admin.id === selectedAdminId
+    );
+
+    if (!isSelectedAdminStillAvailable) {
+      setSelectedAdminId("");
+    }
+  }, [activeAdmins, selectedAdminId]);
 
   const updateForm = (field, value) => {
     setForm((current) => {
@@ -238,8 +329,10 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
 
               <p className="mt-1 text-xs font-semibold text-slate-500">
                 {selectedAdmin
-                  ? `Admin tujuan: ${selectedAdmin.label}`
-                  : "Pilih admin yang ingin dihubungi."}
+                  ? `Admin tujuan: ${selectedAdmin.name}`
+                  : isLoadingContactSettings
+                    ? "Memuat kontak WhatsApp..."
+                    : "Pilih admin yang ingin dihubungi."}
               </p>
             </div>
 
@@ -255,40 +348,47 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
 
           {!selectedAdmin ? (
             <div className="space-y-3 overflow-y-auto px-5 py-5">
-              {activeAdmins.map((admin) => (
-                <button
-                  key={admin.id}
-                  type="button"
-                  onClick={() => setSelectedAdminId(admin.id)}
-                  className="group flex w-full items-center justify-between gap-4 rounded-[1.35rem] border border-amber-300/12 bg-black/30 p-4 text-left shadow-lg shadow-black/20 transition active:scale-[0.99]"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/14 bg-emerald-400/10 text-[#25D366]">
-                      <WhatsAppIcon className="h-6 w-6" />
-                    </span>
+              {activeAdmins.length > 0 ? (
+                activeAdmins.map((admin) => (
+                  <button
+                    key={admin.id}
+                    type="button"
+                    onClick={() => setSelectedAdminId(admin.id)}
+                    className="group flex w-full items-center justify-between gap-4 rounded-[1.35rem] border border-amber-300/12 bg-black/30 p-4 text-left shadow-lg shadow-black/20 transition active:scale-[0.99]"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/14 bg-emerald-400/10 text-[#25D366]">
+                        <WhatsAppIcon className="h-6 w-6" />
+                      </span>
 
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-white">
-                        {admin.name}
-                      </p>
-
-                      <p className="mt-1 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-amber-300">
-                        {admin.label}
-                      </p>
-
-                      {admin.description ? (
-                        <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">
-                          {admin.description}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-white">
+                          {admin.name}
                         </p>
-                      ) : null}
-                    </div>
-                  </div>
 
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-amber-300/12 bg-black/35 text-amber-200 transition group-active:translate-x-0.5">
-                    <ArrowIcon className="h-5 w-5" />
-                  </span>
-                </button>
-              ))}
+                        <p className="mt-1 text-[0.65rem] font-extrabold uppercase tracking-[0.18em] text-amber-300">
+                          {admin.label}
+                        </p>
+
+                        {admin.description ? (
+                          <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">
+                            {admin.description}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-amber-300/12 bg-black/35 text-amber-200 transition group-active:translate-x-0.5">
+                      <ArrowIcon className="h-5 w-5" />
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-red-400/18 bg-red-500/10 px-4 py-4 text-sm font-bold leading-6 text-red-100">
+                  Nomor WhatsApp admin belum tersedia. Silakan atur nomor di
+                  halaman admin pengaturan.
+                </div>
+              )}
             </div>
           ) : (
             <form

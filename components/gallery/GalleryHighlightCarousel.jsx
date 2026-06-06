@@ -3,16 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 
 const fallbackImages = [
-  "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1526976668912-1a811878dd37?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1744711815074-1f12a88cc5d1?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1713239060784-e6ed820a0715?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1565330770968-0240c0046ce3?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1738762051728-b83857743e77?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1585226256693-d34c04276432?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1713302752681-0b14c1034707?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1667454872134-c25973237138?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1768054582993-d60392cab0d9?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1604655983671-9d03650f604c?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1646931817386-f6065668963a?auto=format&fit=crop&w=1200&q=80",
 ];
 
 export default function GalleryHighlightCarousel({ items = [] }) {
