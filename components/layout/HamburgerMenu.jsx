@@ -24,6 +24,37 @@ function ArrowIcon({ className = "" }) {
   );
 }
 
+function LockIcon({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M7.75 10.25V8.5a4.25 4.25 0 0 1 8.5 0v1.75"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7.25 10.25h9.5a2 2 0 0 1 2 2v5.25a2 2 0 0 1-2 2h-9.5a2 2 0 0 1-2-2v-5.25a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 14v1.75"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function UserAdminIcon({ className = "" }) {
   return (
     <svg
@@ -82,25 +113,27 @@ export default function HamburgerMenu({ isOpen, onClose }) {
 
         <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-5">
           {PUBLIC_NAVIGATION.map((item, index) => {
-            const isActive = pathname === item.href;
+            const isLocked = Boolean(item.isLocked);
+            const isActive = !isLocked && pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`flex min-h-14 items-center justify-between rounded-[1.35rem] border px-4 text-base font-bold active:scale-[0.99] ${
-                  isActive
-                    ? "border-amber-300/40 bg-[#3a3108] text-amber-50"
-                    : "border-amber-300/12 bg-[#10100d] text-slate-100"
-                }`}
-              >
+            const itemClassName = `flex min-h-14 w-full items-center justify-between rounded-[1.35rem] border px-4 text-left text-base font-bold active:scale-[0.99] ${
+              isActive
+                ? "border-amber-300/40 bg-[#3a3108] text-amber-50"
+                : isLocked
+                  ? "cursor-not-allowed border-amber-300/10 bg-[#080806] text-slate-500 opacity-80"
+                  : "border-amber-300/12 bg-[#10100d] text-slate-100"
+            }`;
+
+            const itemContent = (
+              <>
                 <span className="flex min-w-0 items-center gap-3">
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[0.65rem] font-extrabold ${
                       isActive
                         ? "border-amber-300/35 bg-[#574909] text-amber-100"
-                        : "border-amber-300/12 bg-[#080806] text-amber-200/80"
+                        : isLocked
+                          ? "border-amber-300/10 bg-[#050505] text-slate-600"
+                          : "border-amber-300/12 bg-[#080806] text-amber-200/80"
                     }`}
                   >
                     {String(index + 1).padStart(2, "0")}
@@ -113,11 +146,43 @@ export default function HamburgerMenu({ isOpen, onClose }) {
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
                     isActive
                       ? "border-amber-300/30 bg-[#574909] text-amber-200"
-                      : "border-amber-300/10 bg-[#080806] text-amber-300"
+                      : isLocked
+                        ? "border-amber-300/10 bg-[#050505] text-slate-600"
+                        : "border-amber-300/10 bg-[#080806] text-amber-300"
                   }`}
                 >
-                  <ArrowIcon className="h-4 w-4" />
+                  {isLocked ? (
+                    <LockIcon className="h-4 w-4" />
+                  ) : (
+                    <ArrowIcon className="h-4 w-4" />
+                  )}
                 </span>
+              </>
+            );
+
+            if (isLocked) {
+              return (
+                <button
+                  key={item.href}
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Halaman sedang disusun"
+                  className={itemClassName}
+                >
+                  {itemContent}
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={itemClassName}
+              >
+                {itemContent}
               </Link>
             );
           })}
