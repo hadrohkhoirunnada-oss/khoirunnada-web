@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import PageContainer from "@/components/layout/PageContainer";
+import { isAllowedAdminEmail } from "@/constants/admin";
+import {
+  listenAuthState,
+  loginWithEmailPassword,
+  loginWithGoogle,
+  logoutAdmin,
+} from "@/services/authService";
 
 const ADMIN_WHATSAPP_URL =
   "https://wa.me/6285173057576?text=Assalamu%27alaikum%20admin%2C%20saya%20ingin%20bertanya%20akun%20login%20Khoirunnada.";
@@ -169,7 +177,129 @@ function FacebookIcon({ className = "" }) {
 }
 
 export default function Page() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (error === "not-authorized") {
+      setErrorMessage(
+        "Akun ini belum terdaftar sebagai admin Khoirunnada."
+      );
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const unsubscribe = listenAuthState((currentUser) => {
+      if (currentUser && isAllowedAdminEmail(currentUser.email)) {
+        router.replace("/admin");
+      }
+    });
+
+    return () => unsubscribe?.();
+  }, [router]);
+
+  const handleAuthorizedUser = async (user) => {
+    if (!isAllowedAdminEmail(user?.email)) {
+      await logoutAdmin();
+
+      setErrorMessage(
+        "Akun ini belum terdaftar sebagai admin Khoirunnada."
+      );
+
+      return false;
+    }
+
+    router.replace("/admin");
+
+    return true;
+  };
+
+  const getLoginErrorMessage = (error) => {
+    if (error?.code === "auth/popup-closed-by-user") {
+      return "Login dibatalkan. Silakan coba lagi.";
+    }
+
+    if (error?.code === "auth/invalid-email") {
+      return "Format email belum benar.";
+    }
+
+    if (
+      error?.code === "auth/invalid-credential" ||
+      error?.code === "auth/user-not-found" ||
+      error?.code === "auth/wrong-password"
+    ) {
+      return "Email atau password tidak sesuai.";
+    }
+
+    if (error?.code === "auth/too-many-requests") {
+      return "Terlalu banyak percobaan login. Coba lagi beberapa saat lagi.";
+    }
+
+    return "Login gagal. Silakan coba beberapa saat lagi.";
+  };
+
+  const handleGoogleLogin = async () => {
+    if (loginLoading) {
+      return;
+    }
+
+    setLoginLoading(true);
+    setLoadingMessage("Membuka login Google...");
+    setErrorMessage("");
+
+    try {
+      const user = await loginWithGoogle();
+
+      await handleAuthorizedUser(user);
+    } catch (error) {
+      console.error("Gagal login dengan Google:", error);
+      setErrorMessage(getLoginErrorMessage(error));
+    } finally {
+      setLoginLoading(false);
+      setLoadingMessage("");
+    }
+  };
+
+  const handleManualLogin = async (event) => {
+    event.preventDefault();
+
+    if (loginLoading) {
+      return;
+    }
+
+    if (!email.trim() || !password) {
+      setErrorMessage("Mohon isi email dan password terlebih dahulu.");
+      return;
+    }
+
+    setLoginLoading(true);
+    setLoadingMessage("Memeriksa email dan password...");
+    setErrorMessage("");
+
+    try {
+      const user = await loginWithEmailPassword({
+        email,
+        password,
+      });
+
+      await handleAuthorizedUser(user);
+    } catch (error) {
+      console.error("Gagal login dengan email/password:", error);
+      setErrorMessage(getLoginErrorMessage(error));
+    } finally {
+      setLoginLoading(false);
+      setLoadingMessage("");
+    }
+  };
 
   return (
     <PageContainer className="flex min-h-[calc(100dvh-5.5rem)] items-center justify-center px-5 py-8">
@@ -194,7 +324,7 @@ export default function Page() {
               <div className="mt-5 h-px w-32 bg-gradient-to-r from-transparent via-amber-300/45 to-transparent" />
             </div>
 
-            <form className="mt-6 space-y-4">
+            <form className="mt-6 space-y-4" onSubmit={handleManualLogin}>
               <div className="relative overflow-hidden rounded-2xl border border-amber-300/12 bg-black/34 shadow-lg shadow-black/20 backdrop-blur-xl transition focus-within:border-amber-300/40 focus-within:shadow-[0_0_0_3px_rgba(245,197,66,0.07)]">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.008)_48%,rgba(0,0,0,0.16))]" />
 
@@ -203,9 +333,13 @@ export default function Page() {
                 </span>
 
                 <input
-                  type="text"
-                  placeholder="Username / Email"
-                  className="relative z-10 min-h-[3.2rem] w-full bg-transparent px-4 pl-14 text-sm font-semibold text-white outline-none placeholder:text-slate-500"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Email admin"
+                  autoComplete="email"
+                  disabled={loginLoading}
+                  className="relative z-10 min-h-[3.2rem] w-full bg-transparent px-4 pl-14 text-sm font-semibold text-white outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
 
@@ -218,8 +352,12 @@ export default function Page() {
 
                 <input
                   type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   placeholder="Password"
-                  className="relative z-10 min-h-[3.2rem] w-full bg-transparent px-4 pl-14 pr-14 text-sm font-semibold text-white outline-none placeholder:text-slate-500"
+                  autoComplete="current-password"
+                  disabled={loginLoading}
+                  className="relative z-10 min-h-[3.2rem] w-full bg-transparent px-4 pl-14 pr-14 text-sm font-semibold text-white outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70"
                 />
 
                 <button
@@ -228,7 +366,8 @@ export default function Page() {
                   aria-label={
                     showPassword ? "Sembunyikan password" : "Tampilkan password"
                   }
-                  className="absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/10 bg-black/35 text-white/85 shadow-inner shadow-black/20 transition active:scale-95"
+                  disabled={loginLoading}
+                  className="absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/10 bg-black/35 text-white/85 shadow-inner shadow-black/20 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {showPassword ? (
                     <EyeOffIcon className="h-4 w-4" />
@@ -238,14 +377,21 @@ export default function Page() {
                 </button>
               </div>
 
+              {errorMessage ? (
+                <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-center text-xs font-semibold leading-5 text-red-100">
+                  {errorMessage}
+                </div>
+              ) : null}
+
               <div className="flex justify-center pt-1">
                 <button
-                  type="button"
-                  className="relative flex min-h-[2.95rem] w-[68%] items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-[linear-gradient(180deg,#8f6418_0%,#5f3b08_50%,#2f1d05_100%)] px-5 text-sm font-black text-amber-50 shadow-[0_14px_30px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,236,178,0.28)] transition active:scale-[0.985]"
+                  type="submit"
+                  disabled={loginLoading}
+                  className="relative flex min-h-[2.95rem] w-[68%] items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-[linear-gradient(180deg,#8f6418_0%,#5f3b08_50%,#2f1d05_100%)] px-5 text-sm font-black text-amber-50 shadow-[0_14px_30px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,236,178,0.28)] transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="pointer-events-none absolute inset-x-7 top-0 h-px bg-amber-100/35" />
                   <span className="pointer-events-none absolute inset-x-5 bottom-0 h-px bg-black/35" />
-                  Masuk
+                  {loginLoading ? "Memproses..." : "Masuk"}
                 </button>
               </div>
             </form>
@@ -259,7 +405,9 @@ export default function Page() {
                 <button
                   type="button"
                   aria-label="Login dengan Google"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/10 bg-black/32 shadow-lg shadow-black/20 transition active:scale-[0.96]"
+                  onClick={handleGoogleLogin}
+                  disabled={loginLoading}
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/10 bg-black/32 shadow-lg shadow-black/20 transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <GoogleIcon className="h-5 w-5" />
                 </button>
@@ -267,11 +415,23 @@ export default function Page() {
                 <button
                   type="button"
                   aria-label="Login dengan Facebook"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/10 bg-black/32 shadow-lg shadow-black/20 transition active:scale-[0.96]"
+                  disabled={loginLoading}
+                  onClick={() =>
+                    setErrorMessage(
+                      "Login Facebook belum diaktifkan. Silakan gunakan Login dengan Google."
+                    )
+                  }
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/10 bg-black/32 shadow-lg shadow-black/20 transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <FacebookIcon className="h-5 w-5" />
                 </button>
               </div>
+
+              {loadingMessage ? (
+                <p className="mt-3 text-xs font-semibold text-amber-200">
+                  {loadingMessage}
+                </p>
+              ) : null}
 
               <p className="mt-5 text-xs font-semibold leading-5 text-slate-500">
                 Belum Punya akun?{" "}

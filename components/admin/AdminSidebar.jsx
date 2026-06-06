@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logoutAdmin } from "@/services/authService";
 
 const navItems = [
   {
@@ -72,11 +74,59 @@ function CloseIcon({ className = "" }) {
   );
 }
 
+function LogoutIcon({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M10.75 5.25H6.75a2 2 0 0 0-2 2v9.5a2 2 0 0 0 2 2h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14.75 8.25 18.5 12l-3.75 3.75M18.25 12H9.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function SidebarContent({ onClose }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+
+    try {
+      await logoutAdmin();
+      onClose?.();
+      router.replace("/login");
+    } catch (error) {
+      console.error("Gagal log out admin:", error);
+      setIsLoggingOut(false);
+      alert("Gagal log out. Silakan coba lagi.");
+    }
+  };
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <div className="relative overflow-hidden rounded-[1.7rem] border border-amber-300/12 bg-black/30 p-4 shadow-xl shadow-black/25">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.18))]" />
 
@@ -129,14 +179,29 @@ function SidebarContent({ onClose }) {
           );
         })}
       </nav>
-    </>
+
+      <div className="mt-auto pt-6">
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="flex min-h-12 w-full items-center gap-3 rounded-2xl border border-red-400/18 bg-red-500/10 px-4 text-sm font-extrabold text-red-100 shadow-lg shadow-black/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-300/16 bg-black/25 text-red-100">
+            <LogoutIcon className="h-4 w-4" />
+          </span>
+
+          {isLoggingOut ? "Keluar..." : "Log Out"}
+        </button>
+      </div>
+    </div>
   );
 }
 
 export default function AdminSidebar({ isOpen = false, onClose }) {
   return (
     <>
-      <aside className="hidden w-[270px] shrink-0 border-r border-amber-300/10 bg-black/24 px-4 py-5 backdrop-blur-xl lg:block">
+      <aside className="hidden min-h-screen w-[270px] shrink-0 flex-col border-r border-amber-300/10 bg-black/24 px-4 py-5 backdrop-blur-xl lg:flex">
         <SidebarContent />
       </aside>
 
@@ -155,7 +220,7 @@ export default function AdminSidebar({ isOpen = false, onClose }) {
         />
 
         <aside
-          className={`absolute bottom-0 right-0 top-0 w-[82%] max-w-[315px] border-l border-amber-300/12 bg-[#05070d]/96 px-4 py-5 shadow-[-24px_0_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-transform duration-300 ease-out ${
+          className={`absolute bottom-0 right-0 top-0 flex w-[82%] max-w-[315px] flex-col border-l border-amber-300/12 bg-[#05070d]/96 px-4 py-5 shadow-[-24px_0_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-transform duration-300 ease-out ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -174,7 +239,9 @@ export default function AdminSidebar({ isOpen = false, onClose }) {
             </button>
           </div>
 
-          <SidebarContent onClose={onClose} />
+          <div className="min-h-0 flex-1">
+            <SidebarContent onClose={onClose} />
+          </div>
         </aside>
       </div>
     </>

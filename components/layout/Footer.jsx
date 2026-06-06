@@ -4,12 +4,12 @@ import LogoBrand from "@/components/shared/LogoBrand";
 const SOCIAL_LINKS = [
   {
     label: "Facebook",
-    href: "#",
+    href: "https://www.facebook.com/profile.php?id=61590473526585&locale=id_ID",
     icon: "/icons/social/facebook.png",
   },
   {
     label: "Instagram",
-    href: "#",
+    href: "https://www.instagram.com/majelissholawatkhoirunnada/",
     icon: "/icons/social/instagram.png",
   },
   {

@@ -1,13 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import useFloatingPopup from "@/hooks/useFloatingPopup";
 import WhatsAppIcon from "@/components/shared/WhatsAppIcon";
 import FloatingBookingModal from "@/components/shared/FloatingBookingModal";
 
 export default function FloatingBookingButton() {
+  const pathname = usePathname();
   const isPopupVisible = useFloatingPopup();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
+
+  const isLyricsDetailPage = pathname?.startsWith("/lirik/");
+
+  useEffect(() => {
+    const syncMenuState = (event) => {
+      const menuOpenFromEvent = Boolean(event?.detail?.isOpen);
+      const menuOpenFromDocument =
+        document.documentElement.dataset.publicMenuOpen === "true";
+
+      setIsPublicMenuOpen(menuOpenFromEvent || menuOpenFromDocument);
+    };
+
+    syncMenuState();
+
+    window.addEventListener("public-menu-state-change", syncMenuState);
+
+    return () => {
+      window.removeEventListener("public-menu-state-change", syncMenuState);
+    };
+  }, []);
+
+  if (isLyricsDetailPage || isPublicMenuOpen) {
+    return null;
+  }
 
   return (
     <>
