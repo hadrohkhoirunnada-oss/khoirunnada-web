@@ -77,7 +77,7 @@ function normalizeText(value) {
   return String(value || "").toLowerCase().trim();
 }
 
-export default function ScheduleTable({ items = [] }) {
+export default function ProductTable({ items = [] }) {
   const [query, setQuery] = useState("");
 
   const filteredItems = useMemo(() => {

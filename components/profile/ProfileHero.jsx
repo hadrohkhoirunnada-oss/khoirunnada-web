@@ -63,9 +63,8 @@ export default function ProfileHero() {
               </p>
 
               <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                Website ini menjadi media resmi Khoirunnada untuk informasi
-                majelis, jadwal penampilan, lirik qasidah, galeri, dan layanan
-                booking.
+                Website ini Adalah Website Resmi Dari Majelis Sholawat & Hadroh Khoirunnada,
+                Yang Dibuat & Dikembangkan Oleh Founder Nexarin By-Rins
               </p>
             </div>
           </div>

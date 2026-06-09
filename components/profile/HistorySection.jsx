@@ -10,7 +10,7 @@ export default function HistorySection() {
 
       <div className="relative z-10">
         <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
-          Sejarah Singkat
+          Sejarah Khoirunnada
         </p>
 
         <h2 className="mt-4 text-[1.4rem] font-extrabold leading-tight tracking-[-0.045em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.78)]">

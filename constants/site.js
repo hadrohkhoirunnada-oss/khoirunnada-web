@@ -3,6 +3,6 @@ export const SITE_CONFIG = {
   domain: "khoirunnada.my.id",
   url: "https://khoirunnada.my.id",
   description:
-    "Website resmi Majelis Sholawat Khoirunnada. Pusat informasi, lirik qasidah, jadwal, galeri, dan booking.",
+  "Website resmi Majelis Sholawat Khoirunnada. Pusat informasi, lirik qasidah, shop, katalog, galeri, dan booking.",
   whatsappAdmin: "6285173057576",
 };

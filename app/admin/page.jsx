@@ -61,18 +61,23 @@ function GalleryIcon({ className = "" }) {
   );
 }
 
-function ScheduleIcon({ className = "" }) {
+function ShopIcon({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
       <path
-        d="M8 4.75v2.5M16 4.75v2.5M5.25 9.25h13.5M6.75 6h10.5a2 2 0 0 1 2 2v9.25a2 2 0 0 1-2 2H6.75a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"
+        d="M6.75 9.25h10.5l-.75 10H7.5l-.75-10Z"
         stroke="currentColor"
         strokeWidth="1.7"
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M8.25 13h3.5M8.25 16h5.5"
+        d="M9 9.25V7.75a3 3 0 0 1 6 0v1.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M5.25 9.25h13.5"
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
@@ -110,10 +115,10 @@ const stats = [
       "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
   },
   {
-    title: "Jadwal",
+    title: "Shop & Katalog",
     value: "0",
-    description: "Agenda tampil",
-    icon: ScheduleIcon,
+    description: "Produk katalog",
+    icon: ShopIcon,
     imageUrl:
       "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80",
   },
@@ -161,8 +166,8 @@ export default function Page() {
             <div className="mt-4 space-y-3 text-sm font-medium leading-7 text-slate-300">
               <p>
                 Pilih menu admin melalui tombol garis tiga di bagian header untuk
-                mengelola data booking, qasidah, jadwal, galeri, QR booking, dan
-                pengaturan website.
+                mengelola data qasidah, shop & katalog, galeri, QR booking,
+                pengaturan website, dan kebutuhan admin lainnya.
               </p>
 
               <p>

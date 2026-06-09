@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
 import PageContainer from "@/components/layout/PageContainer";
 import LyricsDetail from "@/components/lyrics/LyricsDetail";
 import MaulidSectionList from "@/components/lyrics/MaulidSectionList";
+import DatabaseLyricsDetail from "@/components/lyrics/DatabaseLyricsDetail";
 import { initialLyrics } from "@/data/initialLyrics";
 import { maulidCollections } from "@/data/maulidCollections";
 
@@ -19,7 +19,9 @@ export async function generateMetadata({ params }) {
 
   if (!lyric) {
     return {
-      title: "Lirik Tidak Ditemukan | Khoirunnada",
+      title: "Bacaan Qasidah | Khoirunnada",
+      description:
+        "Bacaan qasidah, sholawat, maulid, dan wirid Khoirunnada.",
     };
   }
 
@@ -34,7 +36,11 @@ export default async function Page({ params }) {
   const lyric = allLyrics.find((item) => item.slug === slug);
 
   if (!lyric) {
-    notFound();
+    return (
+      <PageContainer className="pb-28 pt-4">
+        <DatabaseLyricsDetail slug={slug} />
+      </PageContainer>
+    );
   }
 
   const isMaulidCollection = lyric.qasidahCategory === "maulid-lengkap";

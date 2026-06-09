@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { initialSchedules } from "@/data/initialSchedules";
 
-function CalendarIcon({ className = "" }) {
+const featuredProduct = {
+  title: "Shop & Katalog Khoirunnada",
+  description:
+    "Katalog produk, perlengkapan majelis, dan merchandise Khoirunnada akan ditampilkan di sini.",
+  status: "Segera Hadir",
+};
+
+function ShopIcon({ className = "" }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -11,22 +17,28 @@ function CalendarIcon({ className = "" }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M7.25 4.75v2.5M16.75 4.75v2.5M5.75 9.25h12.5"
+        d="M6.75 9.25h10.5l-.75 10H7.5l-.75-10Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 9.25V7.75a3 3 0 0 1 6 0v1.5"
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
       />
       <path
-        d="M6.75 6.25h10.5a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6.75a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z"
+        d="M5.25 9.25h13.5"
         stroke="currentColor"
         strokeWidth="1.7"
-        strokeLinejoin="round"
+        strokeLinecap="round"
       />
     </svg>
   );
 }
 
-function ArrowRightIcon({ className = "" }) {
+function ArrowIcon({ className = "" }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -47,59 +59,54 @@ function ArrowRightIcon({ className = "" }) {
 }
 
 export default function NextEventCard() {
-  const nextEvent = initialSchedules[0];
-
   return (
-    <section className="relative overflow-hidden rounded-[1.8rem] border border-amber-300/14 bg-black/38 p-5 shadow-xl shadow-black/25 backdrop-blur-2xl">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.105),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent_45%,rgba(0,0,0,0.18))]" />
+    <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/15 bg-black/38 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.09),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)_45%,rgba(0,0,0,0.18))]" />
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-1px_0_rgba(245,197,66,0.06)]" />
 
       <div className="relative z-10">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300">
-              Jadwal Terdekat
-            </p>
-
-            <h2 className="mt-4 text-[1.35rem] font-extrabold leading-tight tracking-[-0.04em] text-white">
-              {nextEvent?.title || "Jadwal Penampilan Berikutnya"}
-            </h2>
-          </div>
-
-          <span className="shrink-0 rounded-full border border-amber-300/18 bg-black/30 px-3 py-1 text-xs font-bold text-amber-200 shadow-inner shadow-black/20">
-            Info
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-300/16 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
+            <ShopIcon className="h-5 w-5" />
           </span>
+
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.32em] text-amber-300">
+              Shop & Katalog
+            </p>
+            <p className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">
+              {featuredProduct.status}
+            </p>
+          </div>
         </div>
 
-        {nextEvent ? (
-          <div className="mt-5 space-y-3 text-sm font-medium leading-6 text-slate-300">
-            <div className="flex items-start gap-3">
-              <CalendarIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-              <p>{nextEvent.date}</p>
-            </div>
+        <h2 className="mt-5 text-[1.55rem] font-black leading-tight tracking-[-0.06em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.72)]">
+          {featuredProduct.title}
+        </h2>
 
-            <p className="pl-7">{nextEvent.location}</p>
-          </div>
-        ) : (
-          <p className="mt-5 text-sm font-medium leading-7 text-slate-300">
-            Jadwal resmi akan diumumkan setelah data acara dan konfirmasi admin
-            tersedia.
-          </p>
-        )}
+        <p className="mt-4 text-sm font-medium leading-7 text-slate-300">
+          {featuredProduct.description}
+        </p>
+
+        <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-amber-300/28 to-transparent" />
 
         <Link
-          href="/jadwal"
-          className="group mt-6 flex min-h-[3.25rem] w-full items-center justify-between rounded-2xl border border-amber-300/16 bg-black/35 px-4 text-sm font-extrabold text-white shadow-lg shadow-black/20 backdrop-blur-xl transition active:scale-[0.98]"
+          href="/shop"
+          className="group relative mt-5 flex min-h-[3.35rem] w-full items-center justify-between overflow-hidden rounded-2xl border border-amber-300/18 bg-black/38 px-4 text-sm font-extrabold text-white shadow-lg shadow-black/25 backdrop-blur-2xl transition active:scale-[0.98]"
         >
-          <span className="flex items-center gap-3">
+          <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(255,255,255,0.03)_40%,rgba(0,0,0,0.22))]" />
+          <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
+
+          <span className="relative flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-300/16 bg-black/35 text-amber-200">
-              <CalendarIcon className="h-4 w-4" />
+              <ShopIcon className="h-5 w-5" />
             </span>
-            Lihat Jadwal
+            Buka Katalog
           </span>
 
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-300/14 bg-black/30 text-amber-200 transition group-active:translate-x-0.5">
-            <ArrowRightIcon className="h-4 w-4" />
+          <span className="relative flex h-8 w-8 items-center justify-center rounded-full border border-amber-300/14 bg-black/30 text-amber-200 transition group-active:translate-x-0.5">
+            <ArrowIcon className="h-4 w-4" />
           </span>
         </Link>
       </div>

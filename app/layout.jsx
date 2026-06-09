@@ -19,7 +19,7 @@ const notoNaskhArabic = Noto_Naskh_Arabic({
 export const metadata = {
   title: "Khoirunnada",
   description:
-    "Website resmi Majelis Sholawat Khoirunnada. Pusat informasi, lirik qasidah, jadwal, galeri, dan booking.",
+    "Website resmi Majelis Sholawat Khoirunnada. Pusat informasi, lirik qasidah, shop, katalog, galeri, dan booking.",
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",

@@ -82,34 +82,6 @@ export default function Page() {
   return (
     <AdminShell>
       <section className="space-y-5">
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/14 bg-black/34 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(245,197,66,0.1),transparent_42%),linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.2))]" />
-          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent" />
-
-          <div className="relative z-10">
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/14 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
-                <QrIcon className="h-6 w-6" />
-              </span>
-
-              <div className="min-w-0">
-                <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-amber-300">
-                  QR Booking
-                </p>
-
-                <h1 className="mt-2 text-[1.7rem] font-black leading-tight tracking-[-0.06em] text-white">
-                  Kode Booking
-                </h1>
-
-                <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                  Gunakan QR ini untuk memudahkan jamaah atau tamu membuka
-                  halaman booking Khoirunnada secara cepat.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/14 bg-black/34 p-5 text-center shadow-xl shadow-black/25 backdrop-blur-xl">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.11),transparent_45%),linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.22))]" />
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />

@@ -106,9 +106,33 @@ export default function HamburgerMenu({ isOpen, onClose }) {
         }`}
       >
         <div className="shrink-0">
-          <p className="mb-5 text-sm font-black uppercase tracking-[0.36em] text-amber-300">
+          <p className="mb-4 text-sm font-black uppercase tracking-[0.36em] text-amber-300">
             Menu
           </p>
+
+          <Link
+            href="/"
+            onClick={onClose}
+            className="relative mb-5 flex min-h-[5rem] items-center gap-3 overflow-hidden rounded-[1.7rem] border border-amber-300/12 bg-black/30 p-4 shadow-xl shadow-black/25 active:scale-[0.99]"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.18))]" />
+            <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
+
+            <img
+              src="/logo/khoirunnada-logo.png"
+              alt="Khoirunnada"
+              className="relative z-10 h-12 w-12 shrink-0 rounded-full object-contain"
+            />
+
+            <div className="relative z-10 min-w-0">
+              <p className="truncate text-base font-black tracking-[-0.04em] text-white">
+                Khoirunnada
+              </p>
+              <p className="mt-1 text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-amber-300">
+                Majelis Sholawat
+              </p>
+            </div>
+          </Link>
         </div>
 
         <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-5">

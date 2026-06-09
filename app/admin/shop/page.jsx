@@ -1,7 +1,7 @@
 import AdminShell from "@/components/admin/AdminShell";
-import ScheduleForm from "@/components/admin/jadwal/ScheduleForm";
-import ScheduleTable from "@/components/admin/jadwal/ScheduleTable";
-import { initialSchedules } from "@/data/initialSchedules";
+import ProductForm from "@/components/admin/shop/ProductForm";
+import ProductTable from "@/components/admin/shop/ProductTable";
+import { initialProducts } from "@/data/initialProducts";
 
 function CalendarIcon({ className = "" }) {
   return (
@@ -23,7 +23,7 @@ function CalendarIcon({ className = "" }) {
   );
 }
 
-const scheduleItems = initialSchedules || [];
+const productItems = initialProducts || [];
 
 export default function Page() {
   return (
@@ -61,7 +61,7 @@ export default function Page() {
                   Total Jadwal
                 </p>
                 <p className="mt-2 text-2xl font-black text-white">
-                  {scheduleItems.length}
+                  {productItems.length}
                 </p>
               </div>
 
@@ -77,9 +77,9 @@ export default function Page() {
           </div>
         </section>
 
-        <ScheduleForm />
+        <ProductForm />
 
-        <ScheduleTable items={scheduleItems} />
+        <ProductTable items={productItems} />
       </section>
     </AdminShell>
   );

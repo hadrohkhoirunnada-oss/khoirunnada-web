@@ -304,9 +304,7 @@ export default function Page() {
   return (
     <PageContainer className="flex min-h-[calc(100dvh-5.5rem)] items-center justify-center px-5 py-8">
       <div className="w-full max-w-[350px]">
-        <p className="mb-5 text-center text-[1.65rem] font-black leading-none tracking-[-0.055em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.72)]">
-          Login Disit!
-        </p>
+
 
         <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/14 bg-black/42 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-xl">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.065),rgba(255,255,255,0.014)_42%,rgba(0,0,0,0.22)_100%)]" />
@@ -314,6 +312,11 @@ export default function Page() {
           <div className="pointer-events-none absolute inset-0 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-1px_0_rgba(245,197,66,0.045)]" />
 
           <div className="relative z-10">
+
+            <p className="mb-5 text-center text-[1.65rem] font-black leading-none tracking-[-0.055em] text-amber-300 drop-shadow-[0_10px_28px_rgba(0,0,0,0.72)]">
+              Monggo Login!
+            </p>
+
             <div className="flex flex-col items-center">
               <img
                 src="/logo/khoirunnada-logo.png"
@@ -442,7 +445,7 @@ export default function Page() {
                   style={{ color: "#f5c542" }}
                   className="font-extrabold decoration-[#f5c542]/35 underline-offset-4 transition hover:opacity-90"
                 >
-                  Tanya Admin
+                  Tanya Disini
                 </a>
               </p>
             </div>

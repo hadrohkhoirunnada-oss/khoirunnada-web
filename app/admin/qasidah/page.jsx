@@ -1,86 +1,119 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import QasidahForm from "@/components/admin/qasidah/QasidahForm";
 import QasidahTable from "@/components/admin/qasidah/QasidahTable";
 import { initialLyrics } from "@/data/initialLyrics";
 import { maulidCollections } from "@/data/maulidCollections";
+import {
+  getQasidahItems,
+  getStaticQasidahSlugs,
+} from "@/services/qasidahService";
 
-function BookIcon({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
-      <path
-        d="M6.75 4.75h7.5a3 3 0 0 1 3 3v11.5H9.75a3 3 0 0 0-3 3V4.75Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6.75 18.25h10.5M10 8.25h4M10 11.25h3"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-const qasidahItems = [...initialLyrics, ...maulidCollections];
+const staticQasidahItems = [...initialLyrics, ...maulidCollections];
 
 export default function Page() {
+  const [databaseItems, setDatabaseItems] = useState([]);
+  const [editingItem, setEditingItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const reservedSlugs = useMemo(
+    () => getStaticQasidahSlugs(staticQasidahItems),
+    []
+  );
+
+  const qasidahItems = useMemo(
+    () => [
+      ...staticQasidahItems.map((item) => ({
+        ...item,
+        source: "file",
+        status: "published",
+      })),
+      ...databaseItems,
+    ],
+    [databaseItems]
+  );
+
+  const loadDatabaseQasidah = async () => {
+    setIsLoading(true);
+
+    try {
+      const items = await getQasidahItems();
+      setDatabaseItems(items);
+    } catch (error) {
+      console.error("Gagal memuat qasidah dari database:", error);
+      setStatusMessage("Gagal memuat data qasidah dari database.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDatabaseQasidah();
+  }, []);
+
+  const handleCreated = async () => {
+    setEditingItem(null);
+    setStatusMessage("Qasidah berhasil disimpan ke database.");
+    await loadDatabaseQasidah();
+  };
+
+  const handleUpdated = async () => {
+    setEditingItem(null);
+    setStatusMessage("Qasidah berhasil diperbarui di database.");
+    await loadDatabaseQasidah();
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setStatusMessage(`Mode edit aktif untuk "${item.title}".`);
+
+    if (typeof window !== "undefined") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setStatusMessage("");
+  };
+
+  const handleDeleted = async () => {
+    setEditingItem(null);
+    setStatusMessage("Qasidah berhasil dihapus dari database.");
+    await loadDatabaseQasidah();
+  };
+
   return (
     <AdminShell>
       <section className="space-y-5">
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/14 bg-black/34 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(245,197,66,0.1),transparent_42%),linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.2))]" />
-          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent" />
-
-          <div className="relative z-10">
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/14 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
-                <BookIcon className="h-6 w-6" />
-              </span>
-
-              <div className="min-w-0">
-                <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-amber-300">
-                  Admin Qasidah
-                </p>
-
-                <h1 className="mt-2 text-[1.7rem] font-black leading-tight tracking-[-0.06em] text-white">
-                  Kelola Qasidah
-                </h1>
-
-                <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                  Atur data lirik, kategori qasidah, bacaan maulid, latin, dan
-                  terjemahan yang tampil di halaman lirik.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-amber-300/12 bg-black/30 px-4 py-3">
-                <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.22em] text-amber-300/85">
-                  Total Data
-                </p>
-                <p className="mt-2 text-2xl font-black text-white">
-                  {qasidahItems.length}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-amber-300/12 bg-black/30 px-4 py-3">
-                <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.22em] text-amber-300/85">
-                  Status
-                </p>
-                <p className="mt-2 text-sm font-black text-white">
-                  Siap Dikelola
-                </p>
-              </div>
-            </div>
+        {statusMessage ? (
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-400/14 bg-emerald-400/10 px-4 py-3 shadow-lg shadow-black/20">
+            <p className="relative z-10 text-xs font-semibold leading-6 text-emerald-100">
+              {statusMessage}
+            </p>
           </div>
-        </section>
+        ) : null}
 
-        <QasidahForm />
+        <QasidahForm
+          editingItem={editingItem}
+          reservedSlugs={reservedSlugs}
+          onCreated={handleCreated}
+          onUpdated={handleUpdated}
+          onCancelEdit={handleCancelEdit}
+        />
 
-        <QasidahTable items={qasidahItems} />
+        <QasidahTable
+          items={qasidahItems}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onDeleted={handleDeleted}
+        />
       </section>
     </AdminShell>
   );
