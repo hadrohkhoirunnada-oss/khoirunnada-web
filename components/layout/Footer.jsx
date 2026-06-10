@@ -96,7 +96,7 @@ export default function Footer() {
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/45 to-transparent opacity-60" />
 
           <p className="text-center text-xs leading-6 text-slate-500">
-            @ 2026 Hadroh Khoirunnada. By Nexarin By-Rins.
+            @ 2026 Hadroh Khoirunnada.
           </p>
         </div>
       </div>
