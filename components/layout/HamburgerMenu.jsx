@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PUBLIC_NAVIGATION } from "@/constants/navigation";
@@ -79,8 +80,66 @@ function UserAdminIcon({ className = "" }) {
   );
 }
 
+function VocalistIcon({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12 13.25a3.25 3.25 0 0 0 3.25-3.25V6.75a3.25 3.25 0 0 0-6.5 0V10A3.25 3.25 0 0 0 12 13.25Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M6.75 10.25a5.25 5.25 0 0 0 10.5 0"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 15.5v3.75M9.25 19.25h5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function HamburgerMenu({ isOpen, onClose }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.classList.toggle("public-menu-open", isOpen);
+
+    window.dispatchEvent(
+      new CustomEvent("khoirunnada-public-menu-toggle", {
+        detail: {
+          isOpen,
+        },
+      })
+    );
+
+    return () => {
+      document.body.classList.remove("public-menu-open");
+
+      window.dispatchEvent(
+        new CustomEvent("khoirunnada-public-menu-toggle", {
+          detail: {
+            isOpen: false,
+          },
+        })
+      );
+    };
+  }, [isOpen]);
 
   return (
     <div
@@ -213,19 +272,43 @@ export default function HamburgerMenu({ isOpen, onClose }) {
         </nav>
 
         <div className="shrink-0 border-t border-amber-300/10 pt-4">
-          <Link
-            href="/login"
-            onClick={onClose}
-            className="flex min-h-14 items-center gap-4 rounded-2xl border border-amber-300/14 bg-[#0d0d0b] px-4 text-slate-100 active:scale-[0.99]"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/16 bg-[#14120b] text-amber-200">
-              <UserAdminIcon className="h-5 w-5" />
-            </span>
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="flex min-h-14 items-center gap-4 rounded-2xl border border-amber-300/14 bg-[#0d0d0b] px-4 text-slate-100 active:scale-[0.99]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/16 bg-[#14120b] text-amber-200">
+                <UserAdminIcon className="h-5 w-5" />
+              </span>
 
-            <span className="text-sm font-extrabold tracking-[-0.02em] text-white">
-              Login Admin
-            </span>
-          </Link>
+              <span className="text-sm font-extrabold tracking-[-0.02em] text-white">
+                Login Admin
+              </span>
+            </Link>
+
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Login Kru/Vocalis sedang disiapkan"
+              className="flex min-h-14 w-full cursor-not-allowed items-center justify-between gap-4 rounded-2xl border border-amber-300/10 bg-[#080806] px-4 text-left opacity-80"
+            >
+              <span className="flex min-w-0 items-center gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/10 bg-[#050505] text-slate-600">
+                  <VocalistIcon className="h-5 w-5" />
+                </span>
+
+                <span className="min-w-0 truncate text-sm font-extrabold tracking-[-0.02em] text-slate-500">
+                  Login Kru/Vocalis
+                </span>
+              </span>
+
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/10 bg-[#050505] text-slate-600">
+                <LockIcon className="h-4 w-4" />
+              </span>
+            </button>
+          </div>
         </div>
       </aside>
     </div>

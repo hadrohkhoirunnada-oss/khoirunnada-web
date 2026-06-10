@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import { deleteShopProduct } from "@/services/shopProductService";
 
 function SearchIcon({ className = "" }) {
   return (
@@ -98,49 +99,141 @@ function BoxIcon({ className = "" }) {
   );
 }
 
+function RefreshIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M5.25 12A6.75 6.75 0 0 1 17.7 8.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.25 5.75v4h-4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.75 12A6.75 6.75 0 0 1 6.3 15.6"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M5.75 18.25v-4h4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function normalizeText(value) {
   return String(value || "").toLowerCase().trim();
 }
 
+function getSafeProduct(item) {
+  if (!item || typeof item !== "object") {
+    return {};
+  }
+
+  return item;
+}
+
 function getProductImage(item = {}) {
-  return item.imageUrl || item.image || item.thumbnail || item.photoUrl || "";
+  const product = getSafeProduct(item);
+
+  return (
+    product.imageUrl ||
+    product.image ||
+    product.thumbnail ||
+    product.photoUrl ||
+    ""
+  );
 }
 
 function getProductTitle(item = {}) {
-  return item.title || item.name || "Produk Tanpa Nama";
+  const product = getSafeProduct(item);
+
+  return product.title || product.name || "Produk Tanpa Nama";
 }
 
 function getProductCategory(item = {}) {
-  return item.category || "Katalog";
+  const product = getSafeProduct(item);
+
+  return product.category || "Katalog";
 }
 
 function getProductStatus(item = {}) {
-  return item.status || "published";
+  const product = getSafeProduct(item);
+
+  return product.status || "published";
 }
 
 function getProductPrice(item = {}) {
-  return item.price || item.salePrice || "";
+  const product = getSafeProduct(item);
+
+  return product.price || product.salePrice || "";
 }
 
 function getProductOriginalPrice(item = {}) {
-  return item.originalPrice || item.normalPrice || item.strikePrice || "";
+  const product = getSafeProduct(item);
+
+  return (
+    product.originalPrice ||
+    product.normalPrice ||
+    product.strikePrice ||
+    ""
+  );
 }
 
 function getProductDiscount(item = {}) {
-  return item.discount || item.discountLabel || "";
+  const product = getSafeProduct(item);
+
+  return product.discount || product.discountLabel || "";
 }
 
 function getProductStock(item = {}) {
-  if (item.stock === 0) {
+  const product = getSafeProduct(item);
+
+  if (product.stock === 0) {
     return "0";
   }
 
-  return item.stock || item.stockLabel || "Belum diatur";
+  return product.stock || product.stockLabel || "Belum diatur";
+}
+
+function getProductSource(item = {}) {
+  const product = getSafeProduct(item);
+
+  if (product.source === "firestore") {
+    return "Firestore";
+  }
+
+  if (product.source === "mongodb") {
+    return "MongoDB";
+  }
+
+  return "File";
+}
+
+function isFirestoreProduct(item = {}) {
+  const product = getSafeProduct(item);
+
+  return product.source === "firestore";
 }
 
 function getStatusLabel(status = "") {
   if (status === "draft") {
     return "Draft";
+  }
+
+  if (status === "coming-soon") {
+    return "Coming Soon";
   }
 
   if (status === "sold-out") {
@@ -155,6 +248,10 @@ function getStatusClass(status = "") {
     return "border-slate-400/12 bg-slate-400/10 text-slate-300";
   }
 
+  if (status === "coming-soon") {
+    return "border-sky-400/14 bg-sky-500/10 text-sky-100";
+  }
+
   if (status === "sold-out") {
     return "border-red-400/14 bg-red-500/10 text-red-100";
   }
@@ -162,27 +259,59 @@ function getStatusClass(status = "") {
   return "border-emerald-400/14 bg-emerald-400/10 text-emerald-100";
 }
 
-export default function ProductTable({ items = [] }) {
+async function deleteProductImage(imageId = "") {
+  if (!imageId) {
+    return null;
+  }
+
+  const response = await fetch(`/api/admin/shop/product-images/${imageId}`, {
+    method: "DELETE",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.message || "Gagal menghapus gambar produk.");
+  }
+
+  return result;
+}
+
+export default function ProductTable({
+  items = [],
+  isLoading = false,
+  errorMessage = "",
+  onRefresh,
+  onEdit,
+}) {
   const [query, setQuery] = useState("");
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [deletingId, setDeletingId] = useState("");
 
   const filteredItems = useMemo(() => {
     const keyword = normalizeText(query);
+    const safeItems = Array.isArray(items)
+      ? items.filter((item) => item && typeof item === "object")
+      : [];
 
     if (!keyword) {
-      return items;
+      return safeItems;
     }
 
-    return items.filter((item) => {
+    return safeItems.filter((item) => {
+      const product = getSafeProduct(item);
+
       const searchableText = [
-        getProductTitle(item),
-        getProductCategory(item),
-        getProductStatus(item),
-        getProductPrice(item),
-        getProductOriginalPrice(item),
-        getProductDiscount(item),
-        getProductStock(item),
-        item.description,
-        item.shortDescription,
+        getProductTitle(product),
+        getProductCategory(product),
+        getProductStatus(product),
+        getProductPrice(product),
+        getProductOriginalPrice(product),
+        getProductDiscount(product),
+        getProductStock(product),
+        getProductSource(product),
+        product.description,
+        product.shortDescription,
       ]
         .map(normalizeText)
         .join(" ");
@@ -191,20 +320,103 @@ export default function ProductTable({ items = [] }) {
     });
   }, [items, query]);
 
+  const handleEditProduct = (item) => {
+    if (!isFirestoreProduct(item)) {
+      setMessage({
+        type: "error",
+        text: "Produk dari file hanya bisa diedit langsung melalui kode.",
+      });
+      return;
+    }
+
+    setMessage({ type: "", text: "" });
+    onEdit?.(item);
+  };
+
+  const handleDeleteProduct = async (item) => {
+    if (!isFirestoreProduct(item)) {
+      setMessage({
+        type: "error",
+        text: "Produk dari file hanya bisa dihapus langsung melalui kode.",
+      });
+      return;
+    }
+
+    const productTitle = getProductTitle(item);
+    const isConfirmed = window.confirm(
+      `Hapus produk "${productTitle}"? Data produk akan dihapus dari Firestore dan gambar terkait akan dihapus dari MongoDB.`
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setDeletingId(item.id);
+    setMessage({ type: "", text: "" });
+
+    try {
+      await deleteShopProduct(item.id);
+
+      if (item.imageId) {
+        try {
+          await deleteProductImage(item.imageId);
+        } catch (imageError) {
+          console.warn("Produk terhapus, tapi gambar gagal dihapus:", imageError);
+
+          setMessage({
+            type: "success",
+            text: "Produk berhasil dihapus dari Firestore, tetapi gambar lama perlu dicek manual di MongoDB.",
+          });
+
+          await onRefresh?.();
+          return;
+        }
+      }
+
+      setMessage({
+        type: "success",
+        text: "Produk berhasil dihapus dari Firestore dan gambar MongoDB.",
+      });
+
+      await onRefresh?.();
+    } catch (error) {
+      console.error("Gagal menghapus produk:", error);
+
+      setMessage({
+        type: "error",
+        text: error.message || "Gagal menghapus produk.",
+      });
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   return (
     <section className="relative overflow-hidden rounded-[1.85rem] border border-amber-300/14 bg-black/34 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.07),transparent_45%),linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.22))]" />
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
 
       <div className="relative z-10 space-y-4">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300">
-            Data Produk
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300">
+              Data Produk
+            </p>
 
-          <p className="mt-1 text-xs font-semibold text-slate-500">
-            Daftar produk yang tampil di halaman Shop & Katalog.
-          </p>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              Daftar produk yang tampil di halaman Shop & Katalog.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isLoading || !onRefresh}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-300/12 bg-black/35 text-amber-100 shadow-lg shadow-black/20 transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-55"
+            aria-label="Muat ulang produk"
+          >
+            <RefreshIcon className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-amber-300/12 bg-black/35 shadow-lg shadow-black/20">
@@ -223,7 +435,41 @@ export default function ProductTable({ items = [] }) {
           />
         </div>
 
-        {filteredItems.length > 0 ? (
+        {message.text ? (
+          <div
+            className={`rounded-2xl border px-4 py-3 ${
+              message.type === "success"
+                ? "border-emerald-400/14 bg-emerald-400/10"
+                : "border-red-400/14 bg-red-500/10"
+            }`}
+          >
+            <p
+              className={`text-xs font-semibold leading-6 ${
+                message.type === "success" ? "text-emerald-100" : "text-red-100"
+              }`}
+            >
+              {message.text}
+            </p>
+          </div>
+        ) : null}
+
+        {errorMessage ? (
+          <div className="rounded-2xl border border-red-400/14 bg-red-500/10 px-4 py-3">
+            <p className="text-xs font-semibold leading-6 text-red-100">
+              {errorMessage}
+            </p>
+          </div>
+        ) : null}
+
+        {isLoading ? (
+          <div className="rounded-2xl border border-amber-300/12 bg-black/24 px-4 py-4">
+            <p className="text-xs font-semibold leading-6 text-slate-400">
+              Memuat data produk dari Firestore...
+            </p>
+          </div>
+        ) : null}
+
+        {!isLoading && filteredItems.length > 0 ? (
           <div className="space-y-3">
             {filteredItems.map((item) => {
               const imageUrl = getProductImage(item);
@@ -234,12 +480,17 @@ export default function ProductTable({ items = [] }) {
               const originalPrice = getProductOriginalPrice(item);
               const discount = getProductDiscount(item);
               const stock = getProductStock(item);
+              const source = getProductSource(item);
               const description =
-                item.shortDescription || item.description || "Belum ada deskripsi produk.";
+                item.shortDescription ||
+                item.description ||
+                "Belum ada deskripsi produk.";
+              const canManage = isFirestoreProduct(item);
+              const isDeleting = deletingId === item.id;
 
               return (
                 <article
-                  key={item.id || item.slug || title}
+                  key={item.id || item._id || item.slug || title}
                   className="relative overflow-hidden rounded-[1.55rem] border border-amber-300/12 bg-black/30 p-4 shadow-lg shadow-black/20"
                 >
                   <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.008)_44%,rgba(0,0,0,0.2))]" />
@@ -322,7 +573,7 @@ export default function ProductTable({ items = [] }) {
                         </p>
 
                         <p className="mt-1 text-sm font-black text-white">
-                          {item.source === "firestore" ? "Database" : "File"}
+                          {source}
                         </p>
                       </div>
                     </div>
@@ -340,7 +591,9 @@ export default function ProductTable({ items = [] }) {
 
                       <button
                         type="button"
-                        className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-amber-300/12 bg-amber-300/10 px-3 text-xs font-extrabold uppercase tracking-[0.12em] text-amber-100 transition active:scale-[0.98]"
+                        onClick={() => handleEditProduct(item)}
+                        disabled={!canManage || isDeleting}
+                        className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-amber-300/12 bg-amber-300/10 px-3 text-xs font-extrabold uppercase tracking-[0.12em] text-amber-100 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
                       >
                         <EditIcon className="h-4 w-4" />
                         Edit
@@ -348,7 +601,9 @@ export default function ProductTable({ items = [] }) {
 
                       <button
                         type="button"
-                        className="flex min-h-10 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-400/12 bg-red-500/10 text-red-200 transition active:scale-[0.96]"
+                        onClick={() => handleDeleteProduct(item)}
+                        disabled={!canManage || isDeleting}
+                        className="flex min-h-10 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-400/12 bg-red-500/10 text-red-200 transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45"
                         aria-label={`Hapus ${title}`}
                       >
                         <TrashIcon className="h-4 w-4" />
@@ -359,12 +614,14 @@ export default function ProductTable({ items = [] }) {
               );
             })}
           </div>
-        ) : (
+        ) : null}
+
+        {!isLoading && filteredItems.length === 0 ? (
           <AdminEmptyState
             title="Produk Tidak Ditemukan"
             description="Coba gunakan kata kunci lain untuk mencari data produk katalog."
           />
-        )}
+        ) : null}
       </div>
     </section>
   );

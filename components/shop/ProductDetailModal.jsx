@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { bookingAdmins } from "@/data/bookingAdmins";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import {
+  DEFAULT_SITE_CONTACT_SETTINGS,
+  getSiteContactSettings,
+  normalizeWhatsappNumber,
+} from "@/services/siteSettingsService";
 
 function CloseIcon({ className = "" }) {
   return (
@@ -72,8 +79,87 @@ function WhatsAppIcon({ className = "" }) {
   );
 }
 
+function getStockLabel(stock) {
+  if (stock === 0 || stock === "0") {
+    return "Stok habis";
+  }
+
+  return stock || "Belum diatur";
+}
+
+function isProductOutOfStock(product = {}) {
+  if (product.status === "sold-out") {
+    return true;
+  }
+
+  if (product.stock === 0 || product.stock === "0") {
+    return true;
+  }
+
+  const stockText = String(product.stock ?? "").trim().toLowerCase();
+
+  return (
+    stockText === "habis" ||
+    stockText === "stok habis" ||
+    stockText.includes("stok habis")
+  );
+}
+
+function isProductComingSoon(product = {}) {
+  return product.status === "coming-soon";
+}
+
+function getMainBadge(product = {}) {
+  if (isProductComingSoon(product)) {
+    return {
+      label: "Coming Soon",
+      className: "border-amber-300/28 bg-[#4b3f0d] text-amber-100",
+    };
+  }
+
+  if (isProductOutOfStock(product)) {
+    return {
+      label: "Stok Habis",
+      className: "border-red-300/24 bg-red-950/70 text-red-100",
+    };
+  }
+
+  const discountLabel = product.discountLabel || product.discount || "";
+
+  if (discountLabel) {
+    return {
+      label: discountLabel,
+      className: "border-amber-300/28 bg-[#4b3f0d] text-amber-100",
+    };
+  }
+
+  return null;
+}
+
+function buildCheckoutMessage({ product, adminName }) {
+  return `Assalamu'alaikum Warahmatullahi Wabarakatuh.
+
+Halo ${adminName || "Admin Khoirunnada"}, saya ingin checkout produk Khoirunnada.
+
+Detail Produk:
+Nama Produk: ${product.title || "-"}
+Kategori: ${product.category || "-"}
+Harga: ${product.price || "-"}
+Harga Coret: ${product.originalPrice || "-"}
+Diskon: ${product.discountLabel || product.discount || "-"}
+Stok: ${getStockLabel(product.stock)}
+
+Mohon info ketersediaan dan cara pemesanannya.
+
+Terima kasih.
+Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
+}
+
 export default function ProductDetailModal({ product, isOpen, onClose }) {
   const [isMounted, setIsMounted] = useState(false);
+  const [contactSettings, setContactSettings] = useState(
+    DEFAULT_SITE_CONTACT_SETTINGS
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -92,9 +178,157 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    let isMountedEffect = true;
+
+    async function loadContactSettings() {
+      try {
+        const settings = await getSiteContactSettings();
+
+        if (!isMountedEffect) {
+          return;
+        }
+
+        setContactSettings({
+          ...DEFAULT_SITE_CONTACT_SETTINGS,
+          ...settings,
+        });
+      } catch (error) {
+        console.error("Gagal memuat kontak WhatsApp checkout:", error);
+
+        if (isMountedEffect) {
+          setContactSettings(DEFAULT_SITE_CONTACT_SETTINGS);
+        }
+      }
+    }
+
+    loadContactSettings();
+
+    return () => {
+      isMountedEffect = false;
+    };
+  }, [isOpen]);
+
+  const fallbackAdmins = useMemo(() => {
+    return bookingAdmins
+      .filter((admin) => admin?.isActive !== false)
+      .map((admin) => ({
+        id: admin.id,
+        name: admin.name || "Admin Khoirunnada",
+        whatsappNumber: normalizeWhatsappNumber(admin.whatsappNumber),
+      }))
+      .filter((admin) => admin.whatsappNumber);
+  }, []);
+
+  const checkoutAdmins = useMemo(() => {
+    const singleWhatsappNumber = normalizeWhatsappNumber(
+      contactSettings.whatsappNumber
+    );
+
+    if (singleWhatsappNumber) {
+      return [
+        {
+          id: "site-whatsapp-admin",
+          name: contactSettings.adminName || "Admin Khoirunnada",
+          whatsappNumber: singleWhatsappNumber,
+        },
+      ];
+    }
+
+    const whatsappAdmins = Array.isArray(contactSettings.whatsappAdmins)
+      ? contactSettings.whatsappAdmins
+          .filter((admin) => admin?.isActive !== false)
+          .map((admin) => ({
+            id: admin.id,
+            name: admin.name || "Admin Khoirunnada",
+            whatsappNumber: normalizeWhatsappNumber(admin.whatsappNumber),
+          }))
+          .filter((admin) => admin.whatsappNumber)
+      : [];
+
+    if (whatsappAdmins.length > 0) {
+      return whatsappAdmins;
+    }
+
+    return fallbackAdmins;
+  }, [contactSettings, fallbackAdmins]);
+
   if (!isMounted || !isOpen || !product) {
     return null;
   }
+
+  const title = product.title || "Produk Khoirunnada";
+  const imageUrl = product.imageUrl || product.image || "";
+  const discountLabel = product.discountLabel || product.discount || "";
+  const description =
+    product.description ||
+    product.shortDescription ||
+    "Belum ada deskripsi produk.";
+  const stockLabel = getStockLabel(product.stock);
+  const price = product.price || "Hubungi Admin";
+  const checkoutAdmin = checkoutAdmins[0];
+  const isOutOfStock = isProductOutOfStock(product);
+  const isComingSoon = isProductComingSoon(product);
+  const mainBadge = getMainBadge(product);
+
+  const handleCheckout = () => {
+    if (isOutOfStock) {
+      alert("Maaf, produk ini sedang kosong / stok habis.");
+      return;
+    }
+
+    if (isComingSoon) {
+      alert("Produk ini masih Coming Soon dan belum bisa dipesan.");
+      return;
+    }
+
+    if (product.checkoutUrl) {
+      window.open(product.checkoutUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (!checkoutAdmin?.whatsappNumber) {
+      alert("Nomor WhatsApp admin belum tersedia.");
+      return;
+    }
+
+    const whatsappUrl = buildWhatsAppUrl({
+      phone: checkoutAdmin.whatsappNumber,
+      message: buildCheckoutMessage({
+        product: {
+          ...product,
+          title,
+          price,
+          discountLabel,
+        },
+        adminName: checkoutAdmin.name,
+      }),
+    });
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  };
 
   return createPortal(
     <div className="fixed inset-0 z-[10000] flex items-end justify-center px-4 pb-5 pt-20">
@@ -134,10 +368,10 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
 
           <div className="space-y-4 overflow-y-auto px-5 py-5">
             <div className="relative aspect-square overflow-hidden rounded-[1.45rem] border border-amber-300/12 bg-black/35 shadow-lg shadow-black/30">
-              {product.image ? (
+              {imageUrl ? (
                 <img
-                  src={product.image}
-                  alt={product.title}
+                  src={imageUrl}
+                  alt={title}
                   className="absolute inset-0 h-full w-full object-cover opacity-90"
                 />
               ) : (
@@ -148,19 +382,27 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
 
               <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/12 to-black/75" />
 
-              <span className="absolute left-4 top-4 rounded-full border border-amber-300/28 bg-[#4b3f0d] px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.16em] text-amber-100 shadow-lg shadow-black/25">
-                {product.discountLabel}
-              </span>
+              {mainBadge ? (
+                <span
+                  className={`absolute left-4 top-4 rounded-full border px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.16em] shadow-lg shadow-black/25 backdrop-blur-xl ${mainBadge.className}`}
+                >
+                  {mainBadge.label}
+                </span>
+              ) : null}
             </div>
 
             <div>
-              <h3 className="text-[1.45rem] font-black leading-tight tracking-[-0.06em] text-white">
-                {product.title}
+              <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.24em] text-amber-300">
+                {product.category || "Katalog"}
+              </p>
+
+              <h3 className="mt-2 text-[1.45rem] font-black leading-tight tracking-[-0.06em] text-white">
+                {title}
               </h3>
 
               <div className="mt-4 flex items-end gap-2">
                 <p className="text-[1.18rem] font-black leading-none tracking-[-0.045em] text-amber-200">
-                  {product.price}
+                  {price}
                 </p>
 
                 {product.originalPrice ? (
@@ -176,8 +418,8 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
                 Deskripsi Produk
               </p>
 
-              <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                {product.description}
+              <p className="mt-3 whitespace-pre-line text-sm font-medium leading-7 text-slate-300">
+                {description}
               </p>
             </div>
 
@@ -192,30 +434,33 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
                 </p>
 
                 <p className="mt-1 text-sm font-black text-white">
-                  {product.stock}
+                  {stockLabel}
                 </p>
               </div>
             </div>
 
-            {product.checkoutUrl ? (
-              <a
-                href={product.checkoutUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-emerald-400/18 bg-emerald-400/12 px-4 text-sm font-black text-emerald-50 shadow-lg shadow-black/20 transition active:scale-[0.98]"
-              >
-                <WhatsAppIcon className="h-5 w-5 text-emerald-300" />
-                Checkout
-              </a>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="flex min-h-14 w-full items-center justify-center rounded-2xl border border-amber-300/10 bg-white/[0.025] px-4 text-sm font-black text-slate-500"
-              >
-                Checkout Belum Tersedia
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleCheckout}
+              className={`flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border px-4 text-sm font-black shadow-lg shadow-black/20 transition active:scale-[0.98] ${
+                isOutOfStock || isComingSoon
+                  ? "border-red-400/18 bg-red-500/10 text-red-100"
+                  : "border-emerald-400/18 bg-emerald-400/12 text-emerald-50"
+              }`}
+            >
+              <WhatsAppIcon
+                className={`h-5 w-5 ${
+                  isOutOfStock || isComingSoon
+                    ? "text-red-200"
+                    : "text-emerald-300"
+                }`}
+              />
+              {isOutOfStock
+                ? "Produk Kosong / Habis"
+                : isComingSoon
+                  ? "Produk Segera Hadir"
+                  : "Checkout via WhatsApp"}
+            </button>
           </div>
         </div>
       </section>

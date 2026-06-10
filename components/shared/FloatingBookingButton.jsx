@@ -14,11 +14,55 @@ export default function FloatingBookingButton() {
   const pathname = usePathname();
   const isPopupVisible = useFloatingPopup();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
   const [popupLabel, setPopupLabel] = useState(
     DEFAULT_SITE_CONTACT_SETTINGS.whatsappLabel
   );
 
   const isLyricsDetailPage = pathname?.startsWith("/lirik/");
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const syncMenuState = () => {
+      setIsPublicMenuOpen(document.body.classList.contains("public-menu-open"));
+    };
+
+    const handleMenuToggle = (event) => {
+      const nextIsOpen = Boolean(event.detail?.isOpen);
+
+      setIsPublicMenuOpen(nextIsOpen);
+
+      if (nextIsOpen) {
+        setIsModalOpen(false);
+      }
+    };
+
+    syncMenuState();
+
+    window.addEventListener(
+      "khoirunnada-public-menu-toggle",
+      handleMenuToggle
+    );
+
+    const observer = new MutationObserver(syncMenuState);
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      window.removeEventListener(
+        "khoirunnada-public-menu-toggle",
+        handleMenuToggle
+      );
+
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (isLyricsDetailPage) {
@@ -57,7 +101,7 @@ export default function FloatingBookingButton() {
     };
   }, [isLyricsDetailPage]);
 
-  if (isLyricsDetailPage) {
+  if (isLyricsDetailPage || isPublicMenuOpen) {
     return null;
   }
 

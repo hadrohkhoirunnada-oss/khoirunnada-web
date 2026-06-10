@@ -1,7 +1,10 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import ProductForm from "@/components/admin/shop/ProductForm";
 import ProductTable from "@/components/admin/shop/ProductTable";
-import { initialProducts } from "@/data/initialProducts";
+import { getShopProducts } from "@/services/shopProductService";
 
 function ShopIcon({ className = "" }) {
   return (
@@ -28,10 +31,89 @@ function ShopIcon({ className = "" }) {
   );
 }
 
-const productItems = initialProducts || [];
-const activeProducts = productItems.filter((item) => item.status !== "draft");
+function RefreshIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M5.25 12A6.75 6.75 0 0 1 17.7 8.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.25 5.75v4h-4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.75 12A6.75 6.75 0 0 1 6.3 15.6"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M5.75 18.25v-4h4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function isVisibleProduct(item = {}) {
+  return item.status !== "draft";
+}
 
 export default function Page() {
+  const [productItems, setProductItems] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState("");
+
+  const loadProducts = useCallback(async () => {
+    setIsLoadingProducts(true);
+    setProductsError("");
+
+    try {
+      const items = await getShopProducts();
+      setProductItems(items);
+    } catch (error) {
+      console.error("Gagal mengambil produk Firestore:", error);
+      setProductItems([]);
+      setProductsError(error.message || "Gagal mengambil data produk Firestore.");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+  };
+
+  const handleSavedProduct = async () => {
+    setEditingProduct(null);
+    await loadProducts();
+  };
+
+  const activeProducts = productItems.filter(isVisibleProduct);
+
   return (
     <AdminShell>
       <section className="space-y-5">
@@ -56,8 +138,8 @@ export default function Page() {
                 </h1>
 
                 <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                  Atur katalog produk, merchandise, perlengkapan majelis, harga,
-                  diskon, stok, gambar, dan status tampil di halaman publik.
+                  Data produk disimpan di Firestore, sedangkan file gambar
+                  produk disimpan di MongoDB GridFS.
                 </p>
               </div>
             </div>
@@ -82,12 +164,33 @@ export default function Page() {
               </div>
             </div>
 
+            <button
+              type="button"
+              onClick={loadProducts}
+              disabled={isLoadingProducts}
+              className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-amber-300/12 bg-black/35 px-4 text-xs font-extrabold uppercase tracking-[0.14em] text-amber-100 shadow-lg shadow-black/20 transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshIcon
+                className={`h-4 w-4 ${isLoadingProducts ? "animate-spin" : ""}`}
+              />
+              {isLoadingProducts ? "Memuat Produk..." : "Muat Ulang Produk"}
+            </button>
           </div>
         </section>
 
-        <ProductForm />
+        <ProductForm
+          editingProduct={editingProduct}
+          onSaved={handleSavedProduct}
+          onCancelEdit={handleCancelEdit}
+        />
 
-        <ProductTable items={productItems} />
+        <ProductTable
+          items={productItems}
+          isLoading={isLoadingProducts}
+          errorMessage={productsError}
+          onRefresh={loadProducts}
+          onEdit={handleEditProduct}
+        />
       </section>
     </AdminShell>
   );

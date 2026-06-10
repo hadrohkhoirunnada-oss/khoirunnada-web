@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  createShopProduct,
+  DEFAULT_SHOP_PRODUCT_FORM_DATA,
+  updateShopProduct,
+} from "@/services/shopProductService";
 
 function SaveIcon({ className = "" }) {
   return (
@@ -107,9 +112,7 @@ function Field({ label, helper, children }) {
       <label className="text-[0.65rem] font-extrabold uppercase tracking-[0.22em] text-amber-300/90">
         {label}
       </label>
-
       <div className="mt-2">{children}</div>
-
       {helper ? (
         <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
           {helper}
@@ -121,7 +124,6 @@ function Field({ label, helper, children }) {
 
 function CustomSelect({ placeholder, options = [], value = "", onChange }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const selectedOption = options.find((option) => option.value === value);
 
   return (
@@ -193,6 +195,9 @@ function CustomSelect({ placeholder, options = [], value = "", onChange }) {
 const inputClass =
   "min-h-[3.1rem] w-full rounded-2xl border border-amber-300/12 bg-black/35 px-4 text-sm font-semibold text-white outline-none shadow-lg shadow-black/20 transition placeholder:text-slate-500 focus:border-amber-300/40 focus:bg-black/45 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.07)]";
 
+const readonlyInputClass =
+  "min-h-[3.1rem] w-full cursor-not-allowed rounded-2xl border border-amber-300/12 bg-amber-300/[0.045] px-4 text-sm font-semibold text-amber-100 outline-none shadow-lg shadow-black/20 placeholder:text-slate-500";
+
 const textareaClass =
   "min-h-[7.5rem] w-full resize-none rounded-2xl border border-amber-300/12 bg-black/35 px-4 py-3 text-sm font-semibold leading-7 text-white outline-none shadow-lg shadow-black/20 transition placeholder:text-slate-500 focus:border-amber-300/40 focus:bg-black/45 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.07)]";
 
@@ -211,13 +216,126 @@ const statusOptions = [
   { value: "sold-out", label: "Stok Habis" },
 ];
 
-export default function ProductForm() {
+function parsePriceNumber(value = "") {
+  const digits = String(value || "").replace(/[^\d]/g, "");
+  const numberValue = Number(digits);
+
+  if (!Number.isFinite(numberValue)) {
+    return 0;
+  }
+
+  return numberValue;
+}
+
+function calculateDiscountLabel(priceValue = "", originalPriceValue = "") {
+  const price = parsePriceNumber(priceValue);
+  const originalPrice = parsePriceNumber(originalPriceValue);
+
+  if (!price || !originalPrice || originalPrice <= price) {
+    return "";
+  }
+
+  const discountPercent = Math.round(
+    ((originalPrice - price) / originalPrice) * 100
+  );
+
+  if (!discountPercent || discountPercent < 1) {
+    return "";
+  }
+
+  return `Diskon ${discountPercent}%`;
+}
+
+function getInitialFormData() {
+  return {
+    ...DEFAULT_SHOP_PRODUCT_FORM_DATA,
+    status: "draft",
+  };
+}
+
+function getFormDataFromProduct(product = {}) {
+  const price = product.price || "";
+  const originalPrice = product.originalPrice || "";
+
+  return {
+    ...DEFAULT_SHOP_PRODUCT_FORM_DATA,
+    title: product.title || "",
+    category: product.category || "",
+    status: product.status || "draft",
+    price,
+    originalPrice,
+    discount: product.discount || calculateDiscountLabel(price, originalPrice),
+    stock: product.stock === 0 ? "0" : product.stock || "",
+    description: product.description || "",
+    imageId: product.imageId || "",
+    imageUrl: product.imageUrl || "",
+    imageFilename: product.imageFilename || "",
+    imageOriginalName: product.imageOriginalName || "",
+    imageContentType: product.imageContentType || "",
+    imageSize: product.imageSize || 0,
+  };
+}
+
+async function deleteProductImage(imageId = "") {
+  if (!imageId) {
+    return null;
+  }
+
+  const response = await fetch(`/api/admin/shop/product-images/${imageId}`, {
+    method: "DELETE",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.message || "Gagal menghapus gambar produk.");
+  }
+
+  return result;
+}
+
+export default function ProductForm({
+  editingProduct = null,
+  onSaved,
+  onCancelEdit,
+}) {
   const fileInputRef = useRef(null);
 
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
+  const [formData, setFormData] = useState(getInitialFormData);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+
+  const isEditMode = Boolean(editingProduct?.id);
+  const currentImageUrl = imagePreviewUrl || formData.imageUrl || "";
+
+  useEffect(() => {
+    if (!editingProduct) {
+      setFormData(getInitialFormData());
+      setSelectedImageFile(null);
+      setImagePreviewUrl("");
+      setMessage({ type: "", text: "" });
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      return;
+    }
+
+    setFormData(getFormDataFromProduct(editingProduct));
+    setSelectedImageFile(null);
+    setImagePreviewUrl("");
+    setMessage({
+      type: "success",
+      text: `Mode edit aktif untuk produk "${editingProduct.title}".`,
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [editingProduct]);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -232,6 +350,24 @@ export default function ProductForm() {
       URL.revokeObjectURL(previewUrl);
     };
   }, [selectedImageFile]);
+
+  const updateField = (fieldName, value) => {
+    setFormData((currentData) => {
+      const nextData = {
+        ...currentData,
+        [fieldName]: value,
+      };
+
+      if (fieldName === "price" || fieldName === "originalPrice") {
+        nextData.discount = calculateDiscountLabel(
+          nextData.price,
+          nextData.originalPrice
+        );
+      }
+
+      return nextData;
+    });
+  };
 
   const handleChooseFile = () => {
     fileInputRef.current?.click();
@@ -249,9 +385,127 @@ export default function ProductForm() {
 
   const handleResetImage = () => {
     setSelectedImageFile(null);
+    setImagePreviewUrl("");
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const resetForm = () => {
+    setFormData(getInitialFormData());
+    setSelectedImageFile(null);
+    setImagePreviewUrl("");
+    setMessage({ type: "", text: "" });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
+    onCancelEdit?.();
+  };
+
+  const uploadProductImage = async () => {
+    if (!selectedImageFile) {
+      return {};
+    }
+
+    const payload = new FormData();
+    payload.append("title", formData.title);
+    payload.append("image", selectedImageFile);
+
+    const response = await fetch("/api/admin/shop/product-images", {
+      method: "POST",
+      body: payload,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "Gagal upload gambar produk.");
+    }
+
+    return result.image || {};
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage({ type: "", text: "" });
+
+    let uploadedImageData = null;
+    const finalFormData = {
+      ...formData,
+      discount: calculateDiscountLabel(formData.price, formData.originalPrice),
+    };
+
+    try {
+      uploadedImageData = await uploadProductImage();
+
+      if (isEditMode) {
+        await updateShopProduct(editingProduct.id, {
+          ...finalFormData,
+          ...(uploadedImageData || {}),
+        });
+
+        if (selectedImageFile && editingProduct.imageId) {
+          try {
+            await deleteProductImage(editingProduct.imageId);
+          } catch (imageError) {
+            console.warn(
+              "Produk terupdate, tapi gambar lama gagal dihapus:",
+              imageError
+            );
+          }
+        }
+
+        setMessage({
+          type: "success",
+          text: "Produk berhasil diperbarui.",
+        });
+      } else {
+        await createShopProduct({
+          ...finalFormData,
+          ...(uploadedImageData || {}),
+        });
+
+        setMessage({
+          type: "success",
+          text: "Produk berhasil disimpan ke Firestore. Gambar tersimpan di MongoDB.",
+        });
+      }
+
+      setFormData(getInitialFormData());
+      setSelectedImageFile(null);
+      setImagePreviewUrl("");
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      await onSaved?.();
+    } catch (error) {
+      console.error("Gagal menyimpan produk:", error);
+
+      if (uploadedImageData?.imageId) {
+        try {
+          await deleteProductImage(uploadedImageData.imageId);
+        } catch (cleanupError) {
+          console.warn("Gagal membersihkan gambar baru:", cleanupError);
+        }
+      }
+
+      setMessage({
+        type: "error",
+        text: error.message || "Gagal menyimpan produk.",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -264,15 +518,17 @@ export default function ProductForm() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300">
-              Form Produk
+              {isEditMode ? "Edit Produk" : "Form Produk"}
             </p>
 
             <h2 className="mt-2 text-xl font-black leading-tight tracking-[-0.05em] text-white">
-              Tambah Produk Katalog
+              {isEditMode ? "Perbarui Produk Katalog" : "Tambah Produk Katalog"}
             </h2>
 
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
-              Isi data produk yang nantinya tampil di halaman Shop & Katalog.
+              {isEditMode
+                ? "Ubah data produk di Firestore. Jika gambar diganti, gambar baru masuk MongoDB GridFS."
+                : "Data produk masuk Firestore, gambar masuk MongoDB GridFS."}
             </p>
           </div>
 
@@ -281,7 +537,7 @@ export default function ProductForm() {
           </span>
         </div>
 
-        <form className="mt-6 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="space-y-4">
             <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-300">
               Informasi Produk
@@ -290,6 +546,8 @@ export default function ProductForm() {
             <Field label="Nama Produk" helper="Nama produk yang tampil di halaman katalog.">
               <input
                 type="text"
+                value={formData.title}
+                onChange={(event) => updateField("title", event.target.value)}
                 placeholder="Contoh: Katalog Produk Khoirunnada"
                 className={inputClass}
               />
@@ -300,8 +558,8 @@ export default function ProductForm() {
                 <CustomSelect
                   placeholder="Pilih kategori"
                   options={categoryOptions}
-                  value={category}
-                  onChange={setCategory}
+                  value={formData.category}
+                  onChange={(value) => updateField("category", value)}
                 />
               </Field>
 
@@ -309,8 +567,8 @@ export default function ProductForm() {
                 <CustomSelect
                   placeholder="Pilih status"
                   options={statusOptions}
-                  value={status}
-                  onChange={setStatus}
+                  value={formData.status}
+                  onChange={(value) => updateField("status", value)}
                 />
               </Field>
             </div>
@@ -328,6 +586,8 @@ export default function ProductForm() {
                 <input
                   type="text"
                   inputMode="numeric"
+                  value={formData.price}
+                  onChange={(event) => updateField("price", event.target.value)}
                   placeholder="Rp80.000"
                   className={inputClass}
                 />
@@ -337,6 +597,10 @@ export default function ProductForm() {
                 <input
                   type="text"
                   inputMode="numeric"
+                  value={formData.originalPrice}
+                  onChange={(event) =>
+                    updateField("originalPrice", event.target.value)
+                  }
                   placeholder="Rp100.000"
                   className={inputClass}
                 />
@@ -344,12 +608,28 @@ export default function ProductForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Diskon">
-                <input type="text" placeholder="Diskon 20%" className={inputClass} />
+              <Field
+                label="Diskon"
+                helper="Terisi otomatis jika harga coret lebih besar dari harga jual."
+              >
+                <input
+                  type="text"
+                  value={formData.discount}
+                  readOnly
+                  placeholder="Otomatis"
+                  className={readonlyInputClass}
+                />
               </Field>
 
               <Field label="Stok">
-                <input type="number" min="0" placeholder="10" className={inputClass} />
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.stock}
+                  onChange={(event) => updateField("stock", event.target.value)}
+                  placeholder="10"
+                  className={inputClass}
+                />
               </Field>
             </div>
           </div>
@@ -362,8 +642,12 @@ export default function ProductForm() {
             </p>
 
             <Field
-              label="Upload Gambar Produk"
-              helper="Pilih gambar dari gallery/file explorer. Untuk database gambar, nanti kita sambungkan ke MongoDB."
+              label={isEditMode ? "Gambar Produk" : "Upload Gambar Produk"}
+              helper={
+                isEditMode
+                  ? "Pilih gambar baru hanya jika ingin mengganti gambar produk lama."
+                  : "File gambar disimpan ke MongoDB GridFS, URL gambarnya disimpan di Firestore."
+              }
             >
               <input
                 ref={fileInputRef}
@@ -378,9 +662,9 @@ export default function ProductForm() {
 
                 <div className="relative z-10 flex gap-3">
                   <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-amber-300/12 bg-black/35 text-amber-200 shadow-inner shadow-black/30">
-                    {imagePreviewUrl ? (
+                    {currentImageUrl ? (
                       <img
-                        src={imagePreviewUrl}
+                        src={currentImageUrl}
                         alt="Preview produk"
                         className="h-full w-full object-cover"
                       />
@@ -391,19 +675,21 @@ export default function ProductForm() {
 
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 text-sm font-black text-white">
-                      {selectedImageFile?.name || "Belum ada gambar dipilih"}
+                      {selectedImageFile?.name ||
+                        formData.imageOriginalName ||
+                        "Belum ada gambar dipilih"}
                     </p>
 
                     <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                      Format disarankan JPG, PNG, atau WebP. Preview hanya tampil
-                      sementara sampai fitur simpan DB dibuat.
+                      Format JPG, PNG, atau WebP. Ukuran maksimal 5MB.
                     </p>
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={handleChooseFile}
-                        className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-amber-300/14 bg-amber-300/10 px-3 text-xs font-extrabold text-amber-100 transition active:scale-[0.98]"
+                        disabled={isSaving}
+                        className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-amber-300/14 bg-amber-300/10 px-3 text-xs font-extrabold text-amber-100 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <UploadIcon className="h-4 w-4" />
                         Pilih
@@ -412,7 +698,7 @@ export default function ProductForm() {
                       <button
                         type="button"
                         onClick={handleResetImage}
-                        disabled={!selectedImageFile}
+                        disabled={!selectedImageFile || isSaving}
                         className="flex min-h-10 items-center justify-center rounded-2xl border border-white/10 bg-black/30 px-3 text-xs font-extrabold text-slate-300 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
                       >
                         Hapus
@@ -425,27 +711,54 @@ export default function ProductForm() {
 
             <Field label="Deskripsi Produk">
               <textarea
+                value={formData.description}
+                onChange={(event) => updateField("description", event.target.value)}
                 placeholder="Tulis deskripsi singkat produk, bahan, ukuran, atau informasi pemesanan..."
                 className={textareaClass}
               />
             </Field>
           </div>
 
+          {message.text ? (
+            <div
+              className={`rounded-2xl border px-4 py-3 ${
+                message.type === "success"
+                  ? "border-emerald-400/14 bg-emerald-400/10"
+                  : "border-red-400/14 bg-red-500/10"
+              }`}
+            >
+              <p
+                className={`text-xs font-semibold leading-6 ${
+                  message.type === "success" ? "text-emerald-100" : "text-red-100"
+                }`}
+              >
+                {message.text}
+              </p>
+            </div>
+          ) : null}
+
           <div className="grid gap-3 sm:grid-cols-[0.75fr_1.25fr]">
             <button
               type="button"
-              className="flex min-h-12 items-center justify-center rounded-2xl border border-amber-300/12 bg-black/35 px-5 text-sm font-extrabold text-amber-100 shadow-lg shadow-black/20 transition active:scale-[0.985]"
+              onClick={resetForm}
+              disabled={isSaving}
+              className="flex min-h-12 items-center justify-center rounded-2xl border border-amber-300/12 bg-black/35 px-5 text-sm font-extrabold text-amber-100 shadow-lg shadow-black/20 transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Reset
+              {isEditMode ? "Batal Edit" : "Reset"}
             </button>
 
             <button
-              type="button"
-              className="relative flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-amber-300/18 bg-[linear-gradient(180deg,#8f6418_0%,#5f3b08_50%,#2f1d05_100%)] px-5 text-sm font-black text-amber-50 shadow-[0_14px_30px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,236,178,0.28)] transition active:scale-[0.985]"
+              type="submit"
+              disabled={isSaving}
+              className="relative flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-2xl border border-amber-300/18 bg-[linear-gradient(180deg,#8f6418_0%,#5f3b08_50%,#2f1d05_100%)] px-5 text-sm font-black text-amber-50 shadow-[0_14px_30px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,236,178,0.28)] transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span className="pointer-events-none absolute inset-x-7 top-0 h-px bg-amber-100/35" />
               <SaveIcon className="h-4 w-4" />
-              Simpan Produk
+              {isSaving
+                ? "Menyimpan..."
+                : isEditMode
+                  ? "Simpan Edit"
+                  : "Simpan Produk"}
             </button>
           </div>
         </form>
