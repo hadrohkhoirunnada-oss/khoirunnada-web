@@ -20,11 +20,14 @@ export default function AppShell({ children }) {
   const isBookingPage = safePathname === "/booking";
   const isAdminPage = safePathname.startsWith("/admin");
   const isLoginPage = safePathname === "/login";
+  const isKruVocalisLoginPage = safePathname === "/login-kru-vocalis";
 
-  const showHeader = !isAdminPage && !isLoginPage;
-  const showFooter = !isAdminPage && !isLoginPage;
+  const isCleanAuthPage = isLoginPage || isKruVocalisLoginPage;
+
+  const showHeader = !isAdminPage && !isCleanAuthPage;
+  const showFooter = !isAdminPage && !isCleanAuthPage;
   const showFloatingBooking =
-    hasMounted && !isBookingPage && !isAdminPage && !isLoginPage;
+    hasMounted && !isBookingPage && !isAdminPage && !isCleanAuthPage;
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#020617] text-white">

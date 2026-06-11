@@ -23,6 +23,10 @@ const navItems = [
     href: "/admin/galeri",
   },
   {
+    label: "Kru/Vocalis",
+    href: "/admin/kru-vocalis",
+  },
+  {
     label: "QR Booking",
     href: "/admin/qr-booking",
   },
@@ -154,16 +158,18 @@ function SidebarContent({ onClose }) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex min-h-12 items-center gap-3 rounded-2xl border px-4 text-sm font-bold transition active:scale-[0.99] ${isActive
+              className={`flex min-h-12 items-center gap-3 rounded-2xl border px-4 text-sm font-bold transition active:scale-[0.99] ${
+                isActive
                   ? "border-amber-300/18 bg-amber-300/10 text-amber-100 shadow-lg shadow-black/20"
                   : "border-transparent text-slate-400 hover:border-amber-300/10 hover:bg-white/[0.035] hover:text-white"
-                }`}
+              }`}
             >
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-xl border ${isActive
+                className={`flex h-8 w-8 items-center justify-center rounded-xl border ${
+                  isActive
                     ? "border-amber-300/18 bg-black/30 text-amber-200"
                     : "border-white/6 bg-black/20 text-slate-500"
-                  }`}
+                }`}
               >
                 <MenuIcon className="h-4 w-4" />
               </span>
@@ -200,20 +206,23 @@ export default function AdminSidebar({ isOpen = false, onClose }) {
       </aside>
 
       <div
-        className={`fixed inset-0 z-50 lg:hidden ${isOpen ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+        className={`fixed inset-0 z-50 lg:hidden ${
+          isOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
       >
         <button
           type="button"
           aria-label="Tutup menu admin"
           onClick={onClose}
-          className={`absolute inset-0 bg-black/45 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"
-            }`}
+          className={`absolute inset-0 bg-black/45 backdrop-blur-sm transition-opacity duration-300 ${
+            isOpen ? "opacity-100" : "opacity-0"
+          }`}
         />
 
         <aside
-          className={`absolute bottom-0 right-0 top-0 flex w-[82%] max-w-[315px] flex-col border-l border-amber-300/12 bg-[#05070d]/96 px-4 py-5 shadow-[-24px_0_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"
-            }`}
+          className={`absolute bottom-0 right-0 top-0 flex w-[82%] max-w-[315px] flex-col border-l border-amber-300/12 bg-[#05070d]/96 px-4 py-5 shadow-[-24px_0_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-transform duration-300 ease-out ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
         >
           <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300">
