@@ -13,6 +13,7 @@ import {
 export default function FloatingBookingButton() {
   const pathname = usePathname();
   const isPopupVisible = useFloatingPopup();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPublicMenuOpen, setIsPublicMenuOpen] = useState(false);
   const [popupLabel, setPopupLabel] = useState(
@@ -20,6 +21,26 @@ export default function FloatingBookingButton() {
   );
 
   const isLyricsDetailPage = pathname?.startsWith("/lirik/");
+
+  const isLoginPage =
+    pathname === "/login" ||
+    pathname?.startsWith("/login/") ||
+    pathname === "/login-kru-vocalis" ||
+    pathname?.startsWith("/login-kru-vocalis/");
+
+  const isKruVocalisPage =
+    pathname === "/kru-vocalis" || pathname?.startsWith("/kru-vocalis/");
+
+  const isAdminPage = pathname?.startsWith("/admin");
+
+  const shouldHideFloatingButton =
+    isLyricsDetailPage || isLoginPage || isKruVocalisPage || isAdminPage;
+
+  useEffect(() => {
+    if (shouldHideFloatingButton) {
+      setIsModalOpen(false);
+    }
+  }, [shouldHideFloatingButton]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -65,7 +86,7 @@ export default function FloatingBookingButton() {
   }, []);
 
   useEffect(() => {
-    if (isLyricsDetailPage) {
+    if (shouldHideFloatingButton) {
       return;
     }
 
@@ -99,9 +120,9 @@ export default function FloatingBookingButton() {
     return () => {
       isMounted = false;
     };
-  }, [isLyricsDetailPage]);
+  }, [shouldHideFloatingButton]);
 
-  if (isLyricsDetailPage || isPublicMenuOpen) {
+  if (shouldHideFloatingButton || isPublicMenuOpen) {
     return null;
   }
 

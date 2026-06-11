@@ -1,16 +1,26 @@
 import GalleryPreview from "@/components/gallery/GalleryPreview";
 
-export default function GalleryCard({ item, index }) {
+export default function GalleryCard({ item, index, onOpenPreview }) {
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpenPreview?.();
+    }
+  };
+
   return (
-    <article className="group space-y-3">
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={onOpenPreview}
+      onKeyDown={handleKeyDown}
+      className="group cursor-pointer space-y-3 outline-none transition active:scale-[0.985]"
+      aria-label={`Buka detail ${item.title || "galeri"}`}
+    >
       <GalleryPreview item={item} index={index} />
 
       <div className="px-1">
-        <h2 className="line-clamp-2 text-sm font-black leading-tight tracking-[-0.04em] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.65)]">
-          {item.title}
-        </h2>
-
-        <div className="mt-2 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <span className="h-px flex-1 bg-gradient-to-r from-amber-300/24 to-transparent" />
 
           <p className="shrink-0 text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-amber-300/85">

@@ -2,48 +2,58 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const fallbackImages = [
-  "https://images.unsplash.com/photo-1744711815074-1f12a88cc5d1?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1713239060784-e6ed820a0715?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1565330770968-0240c0046ce3?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1738762051728-b83857743e77?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1585226256693-d34c04276432?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1713302752681-0b14c1034707?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1667454872134-c25973237138?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1768054582993-d60392cab0d9?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1604655983671-9d03650f604c?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1646931817386-f6065668963a?auto=format&fit=crop&w=1200&q=80",
-];
+const HIGHLIGHT_LIMIT = 10;
 
 export default function GalleryHighlightCarousel({ items = [] }) {
   const slides = useMemo(() => {
-    const itemImages = items
-      .slice(0, 10)
-      .map((item) => item.image)
-      .filter(Boolean);
-
-    const mergedImages = [...itemImages, ...fallbackImages].slice(0, 10);
-
-    return mergedImages.map((image, index) => ({
-      id: `gallery-highlight-${index}`,
-      image,
-    }));
+    return items
+      .filter((item) => item?.isHighlight)
+      .slice(0, HIGHLIGHT_LIMIT)
+      .map((item, index) => ({
+        id: item.id || `gallery-highlight-${index}`,
+        image: item.image || item.imageUrl,
+      }))
+      .filter((slide) => Boolean(slide.image));
   }, [items]);
 
-  const loopSlides = slides.length > 0 ? [...slides, slides[0]] : [];
+  const loopSlides = slides.length > 1 ? [...slides, slides[0]] : slides;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [withTransition, setWithTransition] = useState(true);
 
   useEffect(() => {
-    if (slides.length <= 1) return undefined;
+    setWithTransition(false);
+    setActiveIndex(0);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setWithTransition(true);
+      });
+    });
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (slides.length <= 1) {
+      return undefined;
+    }
 
     const timer = setInterval(() => {
       setWithTransition(true);
-      setActiveIndex((current) => current + 1);
+      setActiveIndex((current) => {
+        if (current >= slides.length) {
+          return current;
+        }
+
+        return current + 1;
+      });
     }, 5000);
 
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  if (slides.length === 0) {
+    return null;
+  }
 
   const handleTransitionEnd = () => {
     if (activeIndex === slides.length) {

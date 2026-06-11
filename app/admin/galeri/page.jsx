@@ -1,7 +1,9 @@
 import AdminShell from "@/components/admin/AdminShell";
 import GalleryForm from "@/components/admin/galeri/GalleryForm";
 import GalleryTable from "@/components/admin/galeri/GalleryTable";
-import { initialGallery } from "@/data/initialGallery";
+import { getGalleryItems } from "@/services/galleryService";
+
+export const dynamic = "force-dynamic";
 
 function GalleryIcon({ className = "" }) {
   return (
@@ -29,9 +31,9 @@ function GalleryIcon({ className = "" }) {
   );
 }
 
-const galleryItems = initialGallery || [];
+export default async function Page() {
+  const galleryItems = await getGalleryItems();
 
-export default function Page() {
   return (
     <AdminShell>
       <section className="space-y-5">
@@ -73,10 +75,10 @@ export default function Page() {
 
               <div className="rounded-2xl border border-amber-300/12 bg-black/30 px-4 py-3">
                 <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.22em] text-amber-300/85">
-                  Status
+                  Storage
                 </p>
                 <p className="mt-2 text-sm font-black text-white">
-                  Siap Dikelola
+                  Supabase
                 </p>
               </div>
             </div>

@@ -112,6 +112,8 @@ function VocalistIcon({ className = "" }) {
 
 export default function HamburgerMenu({ isOpen, onClose }) {
   const pathname = usePathname();
+  const isKruVocalisActive = pathname === "/login-kru-vocalis";
+  const isAdminActive = pathname === "/login";
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -154,160 +156,205 @@ export default function HamburgerMenu({ isOpen, onClose }) {
         type="button"
         aria-label="Tutup menu"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/55 transition-opacity duration-200 ease-out ${
+        className={`absolute inset-0 bg-black/58 transition-opacity duration-200 ease-out ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
       />
 
       <aside
-        className={`absolute bottom-0 right-0 top-0 flex w-[82%] max-w-[315px] flex-col border-l border-amber-300/12 bg-[#050505] px-4 py-5 transition-transform duration-200 ease-out will-change-transform ${
+        className={`absolute bottom-0 right-0 top-0 flex w-[82%] max-w-[315px] flex-col border-l border-amber-300/12 bg-[#050505] px-4 py-4 transition-transform duration-200 ease-out will-change-transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="shrink-0">
-          <p className="mb-4 text-sm font-black uppercase tracking-[0.36em] text-amber-300">
-            Menu
-          </p>
-
           <Link
             href="/"
             onClick={onClose}
-            className="relative mb-5 flex min-h-[5rem] items-center gap-3 overflow-hidden rounded-[1.7rem] border border-amber-300/12 bg-black/30 p-4 shadow-xl shadow-black/25 active:scale-[0.99]"
+            className="relative mb-4 flex min-h-[4.35rem] items-center gap-3 overflow-hidden rounded-[1.45rem] border border-amber-300/12 bg-[#0d0d0a] px-3.5 py-3 shadow-xl shadow-black/25 active:scale-[0.99]"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.18))]" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_45%,rgba(0,0,0,0.24))]" />
             <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
 
             <img
               src="/logo/khoirunnada-logo.png"
               alt="Khoirunnada"
-              className="relative z-10 h-12 w-12 shrink-0 rounded-full object-contain"
+              className="relative z-10 h-11 w-11 shrink-0 rounded-full object-contain"
             />
 
             <div className="relative z-10 min-w-0">
-              <p className="truncate text-base font-black tracking-[-0.04em] text-white">
+              <p className="truncate text-[0.95rem] font-black tracking-[-0.04em] text-white">
                 Khoirunnada
               </p>
-              <p className="mt-1 text-[0.66rem] font-extrabold uppercase tracking-[0.22em] text-amber-300">
+              <p className="mt-1 text-[0.58rem] font-extrabold uppercase tracking-[0.22em] text-amber-300">
                 Majelis Sholawat
               </p>
             </div>
           </Link>
         </div>
 
-        <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-5">
-          {PUBLIC_NAVIGATION.map((item, index) => {
-            const isLocked = Boolean(item.isLocked);
-            const isActive = !isLocked && pathname === item.href;
+        <nav className="min-h-0 flex-1 overflow-y-auto pb-4">
+          <div className="space-y-2.5">
+            {PUBLIC_NAVIGATION.map((item, index) => {
+              const isLocked = Boolean(item.isLocked);
+              const isActive = !isLocked && pathname === item.href;
 
-            const itemClassName = `flex min-h-14 w-full items-center justify-between rounded-[1.35rem] border px-4 text-left text-base font-bold active:scale-[0.99] ${
-              isActive
-                ? "border-amber-300/40 bg-[#3a3108] text-amber-50"
-                : isLocked
-                  ? "cursor-not-allowed border-amber-300/10 bg-[#080806] text-slate-500 opacity-80"
-                  : "border-amber-300/12 bg-[#10100d] text-slate-100"
-            }`;
+              const itemClassName = `group flex min-h-[3.15rem] w-full items-center justify-between rounded-[1.15rem] border px-3.5 text-left text-[0.92rem] font-extrabold tracking-[-0.03em] active:scale-[0.99] ${
+                isActive
+                  ? "border-amber-300/35 bg-[#211b07] text-amber-50 shadow-[0_10px_22px_rgba(0,0,0,0.26)]"
+                  : isLocked
+                    ? "cursor-not-allowed border-amber-300/8 bg-[#070706] text-slate-600 opacity-80"
+                    : "border-amber-300/10 bg-[#0d0d0b] text-slate-100 hover:border-amber-300/20"
+              }`;
 
-            const itemContent = (
-              <>
-                <span className="flex min-w-0 items-center gap-3">
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[0.65rem] font-extrabold ${
-                      isActive
-                        ? "border-amber-300/35 bg-[#574909] text-amber-100"
-                        : isLocked
-                          ? "border-amber-300/10 bg-[#050505] text-slate-600"
-                          : "border-amber-300/12 bg-[#080806] text-amber-200/80"
-                    }`}
-                  >
-                    {String(index + 1).padStart(2, "0")}
+              const itemContent = (
+                <>
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[0.62rem] font-black ${
+                        isActive
+                          ? "border-amber-300/30 bg-[#4a3b08] text-amber-100"
+                          : isLocked
+                            ? "border-amber-300/8 bg-[#050505] text-slate-700"
+                            : "border-amber-300/12 bg-[#050505] text-amber-200/80"
+                      }`}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span className="min-w-0 truncate">{item.label}</span>
                   </span>
 
-                  <span className="min-w-0 truncate">{item.label}</span>
-                </span>
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
+                      isActive
+                        ? "border-amber-300/30 bg-[#4a3b08] text-amber-200"
+                        : isLocked
+                          ? "border-amber-300/8 bg-[#050505] text-slate-700"
+                          : "border-amber-300/10 bg-[#070706] text-amber-300"
+                    }`}
+                  >
+                    {isLocked ? (
+                      <LockIcon className="h-4 w-4" />
+                    ) : (
+                      <ArrowIcon className="h-4 w-4" />
+                    )}
+                  </span>
+                </>
+              );
 
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
-                    isActive
-                      ? "border-amber-300/30 bg-[#574909] text-amber-200"
-                      : isLocked
-                        ? "border-amber-300/10 bg-[#050505] text-slate-600"
-                        : "border-amber-300/10 bg-[#080806] text-amber-300"
-                  }`}
-                >
-                  {isLocked ? (
-                    <LockIcon className="h-4 w-4" />
-                  ) : (
-                    <ArrowIcon className="h-4 w-4" />
-                  )}
-                </span>
-              </>
-            );
+              if (isLocked) {
+                return (
+                  <button
+                    key={item.href}
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Halaman sedang disusun"
+                    className={itemClassName}
+                  >
+                    {itemContent}
+                  </button>
+                );
+              }
 
-            if (isLocked) {
               return (
-                <button
+                <Link
                   key={item.href}
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  title="Halaman sedang disusun"
+                  href={item.href}
+                  onClick={onClose}
                   className={itemClassName}
                 >
                   {itemContent}
-                </button>
+                </Link>
               );
-            }
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={itemClassName}
-              >
-                {itemContent}
-              </Link>
-            );
-          })}
+            })}
+          </div>
         </nav>
 
-        <div className="shrink-0 border-t border-amber-300/10 pt-4">
-          <div className="space-y-3">
+        <div className="shrink-0 border-t border-amber-300/10 pt-3.5">
+          <p className="mb-2.5 px-1 text-[0.58rem] font-black uppercase tracking-[0.24em] text-amber-300/70">
+            Akses Khusus
+          </p>
+
+          <div className="space-y-2.5 rounded-[1.45rem] border border-amber-300/10 bg-black/28 p-2">
             <Link
               href="/login"
               onClick={onClose}
-              className="flex min-h-14 items-center gap-4 rounded-2xl border border-amber-300/14 bg-[#0d0d0b] px-4 text-slate-100 active:scale-[0.99]"
+              className={`flex min-h-[3.15rem] items-center justify-between gap-3 rounded-[1.05rem] border px-3 active:scale-[0.99] ${
+                isAdminActive
+                  ? "border-amber-300/30 bg-[#211b07] text-amber-50"
+                  : "border-amber-300/10 bg-[#090908] text-slate-100"
+              }`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/16 bg-[#14120b] text-amber-200">
-                <UserAdminIcon className="h-5 w-5" />
+              <span className="flex min-w-0 items-center gap-3">
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                    isAdminActive
+                      ? "border-amber-300/26 bg-[#3b3008] text-amber-200"
+                      : "border-amber-300/12 bg-[#11100b] text-amber-200"
+                  }`}
+                >
+                  <UserAdminIcon className="h-4.5 w-4.5" />
+                </span>
+
+                <span className="min-w-0 truncate text-[0.86rem] font-black tracking-[-0.03em] text-white">
+                  Login Admin
+                </span>
               </span>
 
-              <span className="text-sm font-extrabold tracking-[-0.02em] text-white">
-                Login Admin
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
+                  isAdminActive
+                    ? "border-amber-300/26 bg-[#3b3008] text-amber-200"
+                    : "border-amber-300/10 bg-[#050505] text-amber-300"
+                }`}
+              >
+                <ArrowIcon className="h-3.5 w-3.5" />
               </span>
             </Link>
 
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Login Kru/Vocalis sedang disiapkan"
-              className="flex min-h-14 w-full cursor-not-allowed items-center justify-between gap-4 rounded-2xl border border-amber-300/10 bg-[#080806] px-4 text-left opacity-80"
+            <Link
+              href="/login-kru-vocalis"
+              onClick={onClose}
+              className={`relative flex min-h-[3.15rem] w-full items-center justify-between gap-3 overflow-hidden rounded-[1.05rem] border px-3 text-left active:scale-[0.99] ${
+                isKruVocalisActive
+                  ? "border-amber-300/36 bg-[#191406] text-amber-50 shadow-[0_12px_24px_rgba(0,0,0,0.28)]"
+                  : "border-amber-300/10 bg-[#090908] text-slate-100"
+              }`}
             >
-              <span className="flex min-w-0 items-center gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/10 bg-[#050505] text-slate-600">
-                  <VocalistIcon className="h-5 w-5" />
+              {isKruVocalisActive ? (
+                <>
+                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(245,197,66,0.035)_42%,rgba(0,0,0,0.08))]" />
+                  <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
+                </>
+              ) : null}
+
+              <span className="relative z-10 flex min-w-0 items-center gap-3">
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                    isKruVocalisActive
+                      ? "border-amber-300/30 bg-[#3b3008] text-amber-200"
+                      : "border-amber-300/12 bg-[#11100b] text-amber-200"
+                  }`}
+                >
+                  <VocalistIcon className="h-4.5 w-4.5" />
                 </span>
 
-                <span className="min-w-0 truncate text-sm font-extrabold tracking-[-0.02em] text-slate-500">
+                <span className="min-w-0 truncate text-[0.86rem] font-black tracking-[-0.03em] text-white">
                   Login Kru/Vocalis
                 </span>
               </span>
 
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/10 bg-[#050505] text-slate-600">
-                <LockIcon className="h-4 w-4" />
+              <span
+                className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
+                  isKruVocalisActive
+                    ? "border-amber-300/30 bg-[#3b3008] text-amber-200"
+                    : "border-amber-300/10 bg-[#050505] text-amber-300"
+                }`}
+              >
+                <ArrowIcon className="h-3.5 w-3.5" />
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </aside>

@@ -2,6 +2,9 @@ import PageContainer from "@/components/layout/PageContainer";
 import GalleryGrid from "@/components/gallery/GalleryGrid";
 import LogoBrand from "@/components/shared/LogoBrand";
 import { initialGallery } from "@/data/initialGallery";
+import { getGalleryItems } from "@/services/galleryService";
+
+export const dynamic = "force-dynamic";
 
 const heroPhotoStack = [
   "https://images.unsplash.com/photo-1592326871020-04f58c1a52f3?auto=format&fit=crop&w=700&q=80",
@@ -38,7 +41,11 @@ function CameraIcon({ className = "" }) {
   );
 }
 
-export default function Page() {
+export default async function Page() {
+  const firestoreGallery = await getGalleryItems();
+  const galleryItems =
+    firestoreGallery.length > 0 ? firestoreGallery : initialGallery;
+
   return (
     <PageContainer className="space-y-6 pb-28 pt-0">
       <section className="relative isolate -mx-5 overflow-hidden px-5 pb-8 pt-7">
@@ -137,7 +144,7 @@ export default function Page() {
         </div>
       </section>
 
-      <GalleryGrid items={initialGallery} />
+      <GalleryGrid items={galleryItems} />
     </PageContainer>
   );
 }
