@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PUBLIC_NAVIGATION } from "@/constants/navigation";
+import { INITIAL_KRU_PROFILE } from "@/data/initialKruVocalis";
+import { listenKruVocalisAuthState } from "@/services/kruVocalisAuthService";
 
 function ArrowIcon({ className = "" }) {
   return (
@@ -110,10 +112,58 @@ function VocalistIcon({ className = "" }) {
   );
 }
 
+function getKruAvatarUrl({ user, profile }) {
+  return (
+    profile?.photoURL ||
+    profile?.googlePhotoURL ||
+    user?.photoURL ||
+    INITIAL_KRU_PROFILE.avatarUrl ||
+    "/logo/khoirunnada-logo.png"
+  );
+}
+
+function getKruDisplayName({ user, profile }) {
+  return (
+    profile?.name ||
+    user?.name ||
+    user?.email ||
+    "Profil Kru/Vocalis"
+  );
+}
+
+function getKruSubtitle({ profile }) {
+  if (profile?.mainRole) {
+    return profile.mainRole;
+  }
+
+  if (profile?.status) {
+    return `Status: ${profile.status}`;
+  }
+
+  return "Akun Kru/Vocalis";
+}
+
 export default function HamburgerMenu({ isOpen, onClose }) {
   const pathname = usePathname();
-  const isKruVocalisActive = pathname === "/login-kru-vocalis";
+  const isKruVocalisActive =
+    pathname === "/login-kru-vocalis" || pathname?.startsWith("/kru-vocalis");
   const isAdminActive = pathname === "/login";
+
+  const [kruAccount, setKruAccount] = useState({
+    user: null,
+    profile: null,
+  });
+
+  useEffect(() => {
+    const unsubscribe = listenKruVocalisAuthState(({ user, profile }) => {
+      setKruAccount({
+        user,
+        profile,
+      });
+    });
+
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -142,6 +192,21 @@ export default function HamburgerMenu({ isOpen, onClose }) {
       );
     };
   }, [isOpen]);
+
+  const hasKruProfile = Boolean(kruAccount.user?.uid && kruAccount.profile?.uid);
+
+  const kruMenuData = useMemo(() => {
+    return {
+      href: hasKruProfile ? "/kru-vocalis" : "/login-kru-vocalis",
+      title: hasKruProfile
+        ? getKruDisplayName(kruAccount)
+        : "Login Kru/Vocalis",
+      subtitle: hasKruProfile
+        ? getKruSubtitle(kruAccount)
+        : "Masuk ke akun anggota Kru/Vocalis",
+      avatarUrl: getKruAvatarUrl(kruAccount),
+    };
+  }, [hasKruProfile, kruAccount]);
 
   return (
     <div
@@ -314,9 +379,9 @@ export default function HamburgerMenu({ isOpen, onClose }) {
             </Link>
 
             <Link
-              href="/login-kru-vocalis"
+              href={kruMenuData.href}
               onClick={onClose}
-              className={`relative flex min-h-[3.15rem] w-full items-center justify-between gap-3 overflow-hidden rounded-[1.05rem] border px-3 text-left active:scale-[0.99] ${
+              className={`relative flex min-h-[3.35rem] w-full items-center justify-between gap-3 overflow-hidden rounded-[1.05rem] border px-3 py-2 text-left active:scale-[0.99] ${
                 isKruVocalisActive
                   ? "border-amber-300/36 bg-[#191406] text-amber-50 shadow-[0_12px_24px_rgba(0,0,0,0.28)]"
                   : "border-amber-300/10 bg-[#090908] text-slate-100"
@@ -331,17 +396,31 @@ export default function HamburgerMenu({ isOpen, onClose }) {
 
               <span className="relative z-10 flex min-w-0 items-center gap-3">
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border ${
                     isKruVocalisActive
                       ? "border-amber-300/30 bg-[#3b3008] text-amber-200"
                       : "border-amber-300/12 bg-[#11100b] text-amber-200"
                   }`}
                 >
-                  <VocalistIcon className="h-4.5 w-4.5" />
+                  {hasKruProfile ? (
+                    <img
+                      src={kruMenuData.avatarUrl}
+                      alt={kruMenuData.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <VocalistIcon className="h-4.5 w-4.5" />
+                  )}
                 </span>
 
-                <span className="min-w-0 truncate text-[0.86rem] font-black tracking-[-0.03em] text-white">
-                  Login Kru/Vocalis
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.86rem] font-black tracking-[-0.03em] text-white">
+                    {kruMenuData.title}
+                  </span>
+
+                  <span className="mt-0.5 block truncate text-[0.62rem] font-bold uppercase tracking-[0.12em] text-amber-300/80">
+                    {kruMenuData.subtitle}
+                  </span>
                 </span>
               </span>
 
