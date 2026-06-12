@@ -215,18 +215,19 @@ const settingMenus = [
     isReady: true,
   },
   {
+    title: "Media Sosial & Copyright",
+    description:
+      "Kelola tautan Facebook, Instagram, YouTube, TikTok, dan teks copyright footer.",
+    href: "/admin/pengaturan/media-sosial",
+    icon: SocialIcon,
+    status: "Aktif",
+    isReady: true,
+  },
+  {
     title: "Pengaturan Website",
     description:
       "Atur informasi umum website, teks, dan identitas tampilan utama.",
     icon: GlobeIcon,
-    status: "Terkunci",
-    isReady: false,
-  },
-  {
-    title: "Media Sosial",
-    description:
-      "Kelola tautan Instagram, YouTube, Facebook, TikTok, dan sosial media lain.",
-    icon: SocialIcon,
     status: "Terkunci",
     isReady: false,
   },
@@ -350,7 +351,8 @@ export default function Page() {
 
             <p className="mt-5 text-sm font-medium leading-7 text-slate-300">
               Kelola konfigurasi website Khoirunnada. Untuk saat ini, menu yang
-              sudah aktif adalah pengaturan nomor admin WhatsApp.
+              sudah aktif adalah nomor admin WhatsApp, media sosial, dan
+              copyright footer.
             </p>
           </div>
         </div>

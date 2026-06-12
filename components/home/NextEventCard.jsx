@@ -1,12 +1,5 @@
 import Link from "next/link";
 
-const featuredProduct = {
-  title: "Shop & Katalog Khoirunnada",
-  description:
-    "Katalog produk, perlengkapan majelis, dan merchandise Khoirunnada akan ditampilkan di sini.",
-  status: "Segera Hadir",
-};
-
 function ShopIcon({ className = "" }) {
   return (
     <svg
@@ -58,7 +51,114 @@ function ArrowIcon({ className = "" }) {
   );
 }
 
-export default function NextEventCard() {
+function getProductStatusLabel(status = "") {
+  if (status === "published") {
+    return "Tersedia";
+  }
+
+  if (status === "coming-soon") {
+    return "Segera Hadir";
+  }
+
+  if (status === "sold-out") {
+    return "Sold Out";
+  }
+
+  return "Katalog";
+}
+
+function formatProductPrice(price = "") {
+  const cleanPrice = String(price || "").trim();
+
+  if (!cleanPrice) {
+    return "";
+  }
+
+  const numberPrice = Number(cleanPrice);
+
+  if (!Number.isFinite(numberPrice)) {
+    return cleanPrice;
+  }
+
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(numberPrice);
+}
+
+function normalizeProduct(item = {}, index = 0) {
+  return {
+    id: item.id || `product-${index}`,
+    title: item.title || "Produk Khoirunnada",
+    description: item.description || "",
+    status: item.status || "",
+    statusLabel: getProductStatusLabel(item.status),
+    category: item.category || "Katalog",
+    price: item.price || "",
+    priceLabel: formatProductPrice(item.price),
+    imageUrl: item.imageUrl || "",
+  };
+}
+
+function getCleanProducts(products = []) {
+  if (!Array.isArray(products)) {
+    return [];
+  }
+
+  return products.map(normalizeProduct).filter((item) => item.title);
+}
+
+function ProductMiniCard({ product }) {
+  return (
+    <article className="group relative min-w-[118px] max-w-[118px] overflow-hidden rounded-2xl border border-amber-300/14 bg-black/35 shadow-lg shadow-black/25">
+      <div className="relative h-[82px] overflow-hidden bg-black/45">
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.title}
+            className="h-full w-full object-cover opacity-80 transition duration-500 group-active:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_20%,rgba(245,197,66,0.16),rgba(0,0,0,0.65)_60%)] text-amber-200">
+            <ShopIcon className="h-7 w-7" />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/55" />
+      </div>
+
+      <div className="p-3">
+        <p className="line-clamp-1 text-[0.55rem] font-extrabold uppercase tracking-[0.16em] text-amber-300">
+          {product.category}
+        </p>
+
+        <h3 className="mt-1.5 line-clamp-2 min-h-[2rem] text-[0.76rem] font-extrabold leading-[1.25] tracking-[-0.035em] text-white">
+          {product.title}
+        </h3>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="rounded-full border border-amber-300/14 bg-amber-300/10 px-2 py-1 text-[0.52rem] font-extrabold uppercase tracking-[0.12em] text-amber-200">
+            {product.statusLabel}
+          </span>
+        </div>
+
+        {product.priceLabel ? (
+          <p className="mt-2 line-clamp-1 text-[0.7rem] font-black text-white">
+            {product.priceLabel}
+          </p>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+export default function NextEventCard({ products = [], isLoading = false }) {
+  const cleanProducts = getCleanProducts(products);
+  const previewProducts = cleanProducts.slice(0, 6);
+  const hasProductPreview = previewProducts.length > 0;
+
   return (
     <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/15 bg-black/38 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.09),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)_45%,rgba(0,0,0,0.18))]" />
@@ -76,20 +176,41 @@ export default function NextEventCard() {
               Shop & Katalog
             </p>
             <p className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">
-              {featuredProduct.status}
+              {isLoading
+                ? "Memuat Data"
+                : hasProductPreview
+                ? "Tersedia"
+                : "Segera Hadir"}
             </p>
           </div>
         </div>
 
-        <h2 className="mt-5 text-[1.55rem] font-black leading-tight tracking-[-0.06em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.72)]">
-          {featuredProduct.title}
-        </h2>
-
-        <p className="mt-4 text-sm font-medium leading-7 text-slate-300">
-          {featuredProduct.description}
-        </p>
-
         <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-amber-300/28 to-transparent" />
+
+        {hasProductPreview ? (
+          <>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                Produk Pilihan
+              </p>
+
+              <p className="text-[0.68rem] font-bold text-amber-200/80">
+                {previewProducts.length} item
+              </p>
+            </div>
+
+            <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+              {previewProducts.map((product) => (
+                <ProductMiniCard key={product.id} product={product} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="mt-4 text-sm font-medium leading-7 text-slate-300">
+            Katalog produk, perlengkapan majelis, dan merchandise Khoirunnada
+            akan ditampilkan di sini.
+          </p>
+        )}
 
         <Link
           href="/shop"

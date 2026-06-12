@@ -5,6 +5,7 @@ import { getFirebaseDb } from "@/lib/firebase";
 
 const SITE_SETTINGS_COLLECTION = "siteSettings";
 const CONTACT_DOCUMENT_ID = "contact";
+const SOCIAL_MEDIA_DOCUMENT_ID = "socialMedia";
 
 export const MAX_WHATSAPP_ADMINS = 5;
 
@@ -15,6 +16,15 @@ export const DEFAULT_SITE_CONTACT_SETTINGS = {
   whatsappMessage:
     "Assalamu'alaikum, saya ingin bertanya tentang booking Khoirunnada.",
   whatsappAdmins: [],
+};
+
+export const DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS = {
+  facebookUrl:
+    "https://www.facebook.com/profile.php?id=61590473526585&locale=id_ID",
+  instagramUrl: "https://www.instagram.com/majelissholawatkhoirunnada/",
+  youtubeUrl: "",
+  tiktokUrl: "",
+  copyrightText: "© 2026 Hadroh Khoirunnada.",
 };
 
 export function normalizeWhatsappNumber(value = "") {
@@ -158,6 +168,32 @@ export function getPrimaryWhatsappAdmin(settings = {}) {
   };
 }
 
+function normalizeExternalUrl(value = "") {
+  const cleanValue = String(value || "").trim();
+
+  if (!cleanValue || cleanValue === "#") {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(cleanValue)) {
+    return cleanValue;
+  }
+
+  return `https://${cleanValue.replace(/^\/+/, "")}`;
+}
+
+export function normalizeSiteSocialMediaSettings(settings = {}) {
+  return {
+    facebookUrl: normalizeExternalUrl(settings.facebookUrl),
+    instagramUrl: normalizeExternalUrl(settings.instagramUrl),
+    youtubeUrl: normalizeExternalUrl(settings.youtubeUrl),
+    tiktokUrl: normalizeExternalUrl(settings.tiktokUrl),
+    copyrightText:
+      String(settings.copyrightText || "").trim() ||
+      DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS.copyrightText,
+  };
+}
+
 function buildContactSettingsPayload(settings = {}) {
   const duplicateNumber = getDuplicateWhatsappNumber(
     settings.whatsappAdmins || []
@@ -199,6 +235,15 @@ function buildContactSettingsPayload(settings = {}) {
   };
 }
 
+function buildSocialMediaSettingsPayload(settings = {}) {
+  const normalizedSettings = normalizeSiteSocialMediaSettings(settings);
+
+  return {
+    ...normalizedSettings,
+    updatedAt: serverTimestamp(),
+  };
+}
+
 export async function getSiteContactSettings() {
   const db = getFirebaseDb();
 
@@ -206,11 +251,7 @@ export async function getSiteContactSettings() {
     return DEFAULT_SITE_CONTACT_SETTINGS;
   }
 
-  const settingsRef = doc(
-    db,
-    SITE_SETTINGS_COLLECTION,
-    CONTACT_DOCUMENT_ID
-  );
+  const settingsRef = doc(db, SITE_SETTINGS_COLLECTION, CONTACT_DOCUMENT_ID);
 
   const snapshot = await getDoc(settingsRef);
 
@@ -244,11 +285,7 @@ export async function updateSiteContactSettings(settings) {
     throw new Error("Firestore hanya bisa digunakan di sisi browser.");
   }
 
-  const settingsRef = doc(
-    db,
-    SITE_SETTINGS_COLLECTION,
-    CONTACT_DOCUMENT_ID
-  );
+  const settingsRef = doc(db, SITE_SETTINGS_COLLECTION, CONTACT_DOCUMENT_ID);
 
   const payload = buildContactSettingsPayload(settings);
 
@@ -262,7 +299,10 @@ export async function updateSiteContactSettings(settings) {
   };
 }
 
-export async function updateWhatsappAdmins(whatsappAdmins = [], extraSettings = {}) {
+export async function updateWhatsappAdmins(
+  whatsappAdmins = [],
+  extraSettings = {}
+) {
   const db = getFirebaseDb();
 
   if (!db) {
@@ -277,11 +317,7 @@ export async function updateWhatsappAdmins(whatsappAdmins = [], extraSettings = 
     throw new Error(`Maksimal hanya boleh ${MAX_WHATSAPP_ADMINS} admin.`);
   }
 
-  const settingsRef = doc(
-    db,
-    SITE_SETTINGS_COLLECTION,
-    CONTACT_DOCUMENT_ID
-  );
+  const settingsRef = doc(db, SITE_SETTINGS_COLLECTION, CONTACT_DOCUMENT_ID);
 
   const payload = buildContactSettingsPayload({
     ...extraSettings,
@@ -294,6 +330,62 @@ export async function updateWhatsappAdmins(whatsappAdmins = [], extraSettings = 
 
   return {
     ...DEFAULT_SITE_CONTACT_SETTINGS,
+    ...payload,
+  };
+}
+
+export async function getSiteSocialMediaSettings() {
+  const db = getFirebaseDb();
+
+  if (!db) {
+    return DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS;
+  }
+
+  try {
+    const settingsRef = doc(
+      db,
+      SITE_SETTINGS_COLLECTION,
+      SOCIAL_MEDIA_DOCUMENT_ID
+    );
+
+    const snapshot = await getDoc(settingsRef);
+
+    if (!snapshot.exists()) {
+      return DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS;
+    }
+
+    return {
+      ...DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS,
+      ...normalizeSiteSocialMediaSettings(snapshot.data()),
+    };
+  } catch (error) {
+    console.error("Gagal memuat pengaturan media sosial:", error);
+
+    return DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS;
+  }
+}
+
+export async function updateSiteSocialMediaSettings(settings = {}) {
+  const db = getFirebaseDb();
+
+  if (!db) {
+    throw new Error("Firestore hanya bisa digunakan di sisi browser.");
+  }
+
+  const settingsRef = doc(
+    db,
+    SITE_SETTINGS_COLLECTION,
+    SOCIAL_MEDIA_DOCUMENT_ID
+  );
+
+  const payload = buildSocialMediaSettingsPayload(settings);
+
+  await setDoc(settingsRef, payload, {
+    merge: true,
+  });
+
+  return {
+    ...DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS,
     ...payload,
   };
 }

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
-import { getFirebaseAuth } from "@/lib/firebase";
 import {
   getKruVocalisMembers,
   updateKruVocalisMemberStatus,
@@ -159,20 +158,6 @@ function InactiveIcon({ className = "" }) {
   );
 }
 
-function TrashIcon({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
-      <path
-        d="M6.75 7.25h10.5M10 4.75h4M9.25 10.25v6M14.75 10.25v6M8 7.25l.65 11a1.5 1.5 0 0 0 1.5 1.4h3.7a1.5 1.5 0 0 0 1.5-1.4l.65-11"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function normalizeText(value) {
   return String(value || "").toLowerCase().trim();
 }
@@ -233,32 +218,6 @@ function getStatusClass(status) {
 
 function countByStatus(items, status) {
   return items.filter((item) => normalizeText(item.status) === status).length;
-}
-
-async function deleteKruVocalisMemberAccessFromServer(memberId) {
-  const auth = getFirebaseAuth();
-  const token = await auth?.currentUser?.getIdToken();
-
-  if (!token) {
-    throw new Error("Sesi admin tidak valid. Silakan login ulang.");
-  }
-
-  const response = await fetch(`/api/admin/kru-vocalis-members/${memberId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const result = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      result?.message || "Gagal menghapus akses Kru/Vocalis dari server."
-    );
-  }
-
-  return result;
 }
 
 function StatusFilterDropdown({ value, onChange }) {
@@ -385,8 +344,6 @@ function MemberActionButton({
       "border-red-300/16 bg-red-500/10 text-red-100 hover:border-red-300/28 hover:bg-red-500/14",
     inactive:
       "border-slate-300/12 bg-slate-500/10 text-slate-100 hover:border-slate-300/20 hover:bg-slate-500/14",
-    delete:
-      "border-red-400/14 bg-red-500/10 text-red-200 hover:border-red-300/24 hover:bg-red-500/14",
     neutral:
       "border-amber-300/14 bg-amber-300/10 text-amber-100 hover:border-amber-300/24 hover:bg-amber-300/14",
   };
@@ -546,49 +503,6 @@ export default function Page() {
     }
   }
 
-  async function handleDeleteAccess(member) {
-    const memberId = String(member?.id || "").trim();
-
-    if (!memberId) {
-      setMessageType("error");
-      setMessage("ID anggota tidak valid.");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Hapus akses Kru/Vocalis untuk "${member?.name || "anggota"}"? Data Firestore dan akun Authentication akan dihapus.`
-    );
-
-    if (!confirmed) return;
-
-    setProcessingId(memberId);
-    setMessageType("info");
-    setMessage("Menghapus akses Kru/Vocalis dan akun Authentication...");
-
-    try {
-      await deleteKruVocalisMemberAccessFromServer(memberId);
-
-      setMembers((currentMembers) =>
-        currentMembers.filter((currentMember) => currentMember.id !== memberId)
-      );
-
-      setMessageType("success");
-      setMessage(
-        "Akses Kru/Vocalis dan akun Authentication berhasil dihapus."
-      );
-    } catch (error) {
-      console.error("Gagal menghapus akses:", error);
-
-      setMessageType("error");
-      setMessage(
-        error?.message ||
-          "Gagal menghapus akses Kru/Vocalis dan akun Authentication."
-      );
-    } finally {
-      setProcessingId("");
-    }
-  }
-
   return (
     <AdminShell>
       <section className="space-y-5">
@@ -613,7 +527,8 @@ export default function Page() {
 
                 <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
                   Tinjau pendaftaran anggota internal, setujui akses, tolak,
-                  nonaktifkan, atau hapus akses Kru/Vocalis Khoirunnada.
+                  nonaktifkan, atau aktifkan kembali akses Kru/Vocalis
+                  Khoirunnada.
                 </p>
               </div>
             </div>
@@ -865,15 +780,6 @@ export default function Page() {
                               Nonaktifkan
                             </MemberActionButton>
                           ) : null}
-
-                          <MemberActionButton
-                            onClick={() => handleDeleteAccess(member)}
-                            disabled={isProcessing}
-                            variant="delete"
-                            icon={<TrashIcon className="h-3.5 w-3.5" />}
-                          >
-                            Hapus Akses
-                          </MemberActionButton>
                         </div>
                       </div>
                     </article>

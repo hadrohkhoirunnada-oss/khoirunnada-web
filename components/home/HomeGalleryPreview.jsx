@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-const galleryPreview = [
+const fallbackGalleryPreview = [
   {
     id: 1,
     title: "Suasana Makkah",
     category: "Makkah",
     image:
       "https://images.unsplash.com/photo-1744711815074-1f12a88cc5d1?auto=format&fit=crop&w=700&q=80",
+    isFallback: true,
   },
   {
     id: 2,
@@ -14,6 +15,7 @@ const galleryPreview = [
     category: "Ka'bah",
     image:
       "https://images.unsplash.com/photo-1710695198971-3abdf7fcc82e?auto=format&fit=crop&w=700&q=80",
+    isFallback: true,
   },
   {
     id: 3,
@@ -21,6 +23,7 @@ const galleryPreview = [
     category: "Haram",
     image:
       "https://images.unsplash.com/photo-1591604157118-b94e2684f857?auto=format&fit=crop&w=700&q=80",
+    isFallback: true,
   },
   {
     id: 4,
@@ -28,6 +31,7 @@ const galleryPreview = [
     category: "Nabawi",
     image:
       "https://images.unsplash.com/photo-1768054582993-d60392cab0d9?auto=format&fit=crop&w=700&q=80",
+    isFallback: true,
   },
   {
     id: 5,
@@ -35,6 +39,7 @@ const galleryPreview = [
     category: "Madinah",
     image:
       "https://images.unsplash.com/photo-1729931421786-7bbd6c7d78f6?auto=format&fit=crop&w=700&q=80",
+    isFallback: true,
   },
 ];
 
@@ -90,7 +95,73 @@ function ArrowIcon({ className = "" }) {
   );
 }
 
-export default function HomeGalleryPreview() {
+function normalizeGalleryPreviewItems(items = []) {
+  const cleanItems = Array.isArray(items)
+    ? items
+        .map((item, index) => {
+          const image = item?.imageUrl || item?.image || "";
+
+          return {
+            id: item?.id || `gallery-${index}`,
+            title: item?.title || "Dokumentasi Khoirunnada",
+            category: item?.category || "Dokumentasi",
+            image,
+            isHighlight: Boolean(item?.isHighlight),
+            isFallback: false,
+          };
+        })
+        .filter((item) => item.image)
+    : [];
+
+  const highlightItems = cleanItems.filter((item) => item.isHighlight);
+  const sourceItems = highlightItems.length > 0 ? highlightItems : cleanItems;
+
+  return sourceItems.slice(0, 6);
+}
+
+function GalleryMiniCard({ item }) {
+  return (
+    <article className="group relative min-w-[118px] max-w-[118px] overflow-hidden rounded-2xl border border-amber-300/14 bg-black/35 shadow-lg shadow-black/25">
+      <div className="relative h-[82px] overflow-hidden bg-black/45">
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.title}
+            className="h-full w-full object-cover opacity-80 transition duration-500 group-active:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_20%,rgba(245,197,66,0.16),rgba(0,0,0,0.65)_60%)] text-amber-200">
+            <GalleryIcon className="h-7 w-7" />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/60" />
+      </div>
+
+      <div className="p-3">
+        <p className="line-clamp-1 text-[0.55rem] font-extrabold uppercase tracking-[0.16em] text-amber-300">
+          {item.category}
+        </p>
+
+        <h3 className="mt-1.5 line-clamp-2 min-h-[2rem] text-[0.76rem] font-extrabold leading-[1.25] tracking-[-0.035em] text-white">
+          {item.title}
+        </h3>
+      </div>
+    </article>
+  );
+}
+
+export default function HomeGalleryPreview({ items = [], isLoading = false }) {
+  const databasePreviewItems = normalizeGalleryPreviewItems(items);
+  const visibleItems =
+    databasePreviewItems.length > 0
+      ? databasePreviewItems
+      : fallbackGalleryPreview;
+
+  const isUsingDatabase = databasePreviewItems.length > 0;
+  const itemCount = visibleItems.length;
+
   return (
     <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/15 bg-black/38 p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.09),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)_45%,rgba(0,0,0,0.18))]" />
@@ -98,53 +169,40 @@ export default function HomeGalleryPreview() {
       <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-1px_0_rgba(245,197,66,0.06)]" />
 
       <div className="relative z-10">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-300/16 bg-black/35 text-amber-200 shadow-inner shadow-black/25">
+            <GalleryIcon className="h-5 w-5" />
+          </span>
+
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]">
+            <p className="text-xs font-extrabold uppercase tracking-[0.32em] text-amber-300">
               Galeri
             </p>
-
-            <h2 className="mt-4 text-[1.45rem] font-black leading-tight tracking-[-0.055em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.72)]">
-              Dokumentasi Kegiatan
-            </h2>
+            <p className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">
+              {isLoading
+                ? "Memuat Data"
+                : isUsingDatabase
+                ? "Tersedia"
+                : "Preview"}
+            </p>
           </div>
-
-          <Link
-            href="/galeri"
-            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-amber-300/16 bg-black/35 px-4 text-sm font-extrabold text-slate-100 shadow-lg shadow-black/20 backdrop-blur-xl transition active:scale-[0.98]"
-          >
-            Lihat
-            <ArrowIcon className="h-4 w-4 text-amber-300" />
-          </Link>
         </div>
 
-        <div className="no-scrollbar mt-6 flex gap-3 overflow-x-auto pb-1">
-          {galleryPreview.slice(0, 5).map((item) => (
-            <article
-              key={item.id}
-              className="group relative flex h-42 min-w-[128px] overflow-hidden rounded-2xl border border-amber-300/14 bg-black/35 shadow-lg shadow-black/25"
-            >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-500 group-active:scale-105"
-                loading="lazy"
-              />
+        <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-amber-300/28 to-transparent" />
 
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/90" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.18),transparent_48%)]" />
-              <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent" />
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+            Dokumentasi Pilihan
+          </p>
 
-              <div className="relative z-10 mt-auto p-3">
-                <p className="inline-flex rounded-full border border-amber-300/20 bg-black/50 px-2.5 py-1 text-[0.55rem] font-extrabold uppercase tracking-[0.18em] text-amber-300 backdrop-blur-xl">
-                  {item.category}
-                </p>
+          <p className="text-[0.68rem] font-bold text-amber-200/80">
+            {itemCount} item
+          </p>
+        </div>
 
-                <h3 className="mt-2 text-[0.82rem] font-extrabold leading-[1.25] tracking-[-0.035em] text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)]">
-                  {item.title}
-                </h3>
-              </div>
-            </article>
+        <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto pb-1">
+          {visibleItems.map((item) => (
+            <GalleryMiniCard key={item.id} item={item} />
           ))}
         </div>
 

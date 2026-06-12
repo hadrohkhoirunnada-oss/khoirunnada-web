@@ -1,30 +1,108 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import LogoBrand from "@/components/shared/LogoBrand";
+import {
+  DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS,
+  getSiteSocialMediaSettings,
+} from "@/services/siteSettingsService";
 
 const SOCIAL_LINKS = [
   {
+    key: "facebookUrl",
     label: "Facebook",
-    href: "https://www.facebook.com/profile.php?id=61590473526585&locale=id_ID",
     icon: "/icons/social/facebook.png",
   },
   {
+    key: "instagramUrl",
     label: "Instagram",
-    href: "https://www.instagram.com/majelissholawatkhoirunnada/",
     icon: "/icons/social/instagram.png",
   },
   {
+    key: "youtubeUrl",
     label: "YouTube",
-    href: "#",
     icon: "/icons/social/youtube.png",
   },
   {
+    key: "tiktokUrl",
     label: "TikTok",
-    href: "#",
     icon: "/icons/social/tiktok.png",
   },
 ];
 
+function SocialButton({ item, href }) {
+  const isActive = Boolean(href);
+
+  function handleClick(event) {
+    if (!isActive) {
+      event.preventDefault();
+    }
+  }
+
+  return (
+    <a
+      href={isActive ? href : "#"}
+      aria-label={item.label}
+      target={isActive ? "_blank" : undefined}
+      rel={isActive ? "noopener noreferrer" : undefined}
+      onClick={handleClick}
+      className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-amber-300/12 bg-white/[0.045] shadow-lg shadow-black/25 backdrop-blur-xl transition active:scale-95"
+    >
+      <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035)_38%,rgba(0,0,0,0.22))]" />
+      <span className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
+      <span className="pointer-events-none absolute bottom-1 h-3 w-8 rounded-full bg-black/40 blur-md" />
+
+      <Image
+        src={item.icon}
+        alt=""
+        width={32}
+        height={32}
+        className="relative z-10 h-7 w-7 object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.55)] transition duration-300 group-active:translate-y-0.5 group-active:scale-95"
+        style={{
+          filter: "saturate(1.15) contrast(1.05) brightness(1.05)",
+        }}
+      />
+    </a>
+  );
+}
+
 export default function Footer() {
+  const [socialSettings, setSocialSettings] = useState(
+    DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSocialSettings() {
+      try {
+        const settings = await getSiteSocialMediaSettings();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setSocialSettings({
+          ...DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS,
+          ...settings,
+        });
+      } catch (error) {
+        console.error("Gagal memuat pengaturan footer:", error);
+
+        if (isMounted) {
+          setSocialSettings(DEFAULT_SITE_SOCIAL_MEDIA_SETTINGS);
+        }
+      }
+    }
+
+    loadSocialSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <footer className="relative z-10 overflow-hidden border-t border-amber-300/10 bg-[#030407]/72 px-5 pb-5 pt-8 text-white shadow-[0_-18px_55px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.11),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.012)_42%,rgba(0,0,0,0.24))]" />
@@ -65,27 +143,11 @@ export default function Footer() {
 
             <div className="mt-5 grid grid-cols-4 gap-3">
               {SOCIAL_LINKS.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  aria-label={item.label}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-amber-300/12 bg-white/[0.045] shadow-lg shadow-black/25 backdrop-blur-xl transition active:scale-95"
-                >
-                  <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.035)_38%,rgba(0,0,0,0.22))]" />
-                  <span className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
-                  <span className="pointer-events-none absolute bottom-1 h-3 w-8 rounded-full bg-black/40 blur-md" />
-
-                  <Image
-                    src={item.icon}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="relative z-10 h-7 w-7 object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.55)] transition duration-300 group-active:translate-y-0.5 group-active:scale-95"
-                    style={{
-                      filter: "saturate(1.15) contrast(1.05) brightness(1.05)",
-                    }}
-                  />
-                </a>
+                <SocialButton
+                  key={item.key}
+                  item={item}
+                  href={socialSettings[item.key]}
+                />
               ))}
             </div>
           </div>
@@ -96,7 +158,7 @@ export default function Footer() {
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/45 to-transparent opacity-60" />
 
           <p className="text-center text-xs leading-6 text-slate-500">
-            @ 2026 Hadroh Khoirunnada.
+            {socialSettings.copyrightText}
           </p>
         </div>
       </div>

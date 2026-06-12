@@ -46,24 +46,54 @@ function ArrowRightIcon({ className = "" }) {
   );
 }
 
-export default function QuickLyricsAccess() {
+function getLyricsDescription(qasidahItems = [], isLoading = false) {
+  const totalQasidah = Array.isArray(qasidahItems) ? qasidahItems.length : 0;
+  const firstQasidah = totalQasidah > 0 ? qasidahItems[0] : null;
+
+  if (isLoading && totalQasidah < 1) {
+    return "Memuat koleksi qasidah dari database. Jika data belum tersedia, halaman lirik tetap memakai data cadangan.";
+  }
+
+  if (totalQasidah > 0) {
+    return `Saat ini tersedia ${totalQasidah} qasidah dari database${
+      firstQasidah?.title ? `, termasuk “${firstQasidah.title}”` : ""
+    }. Tetap nyaman dibaca dari HP saat majelis.`;
+  }
+
+  return "Nantinya halaman ini berisi kumpulan lirik Arab, latin, dan terjemahan yang nyaman dibaca dari HP.";
+}
+
+export default function QuickLyricsAccess({
+  qasidahItems = [],
+  isLoading = false,
+}) {
+  const totalQasidah = Array.isArray(qasidahItems) ? qasidahItems.length : 0;
+  const isConnectedToDatabase = totalQasidah > 0;
+
   return (
     <section className="relative overflow-hidden rounded-[1.8rem] border border-amber-300/14 bg-black/38 p-5 shadow-xl shadow-black/25 backdrop-blur-2xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.105),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.035),transparent_45%,rgba(0,0,0,0.18))]" />
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
       <div className="relative z-10">
-        <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300">
-          Pusat Lirik
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300">
+            Pusat Lirik
+          </p>
+
+          {isConnectedToDatabase ? (
+            <span className="rounded-full border border-amber-300/16 bg-amber-300/10 px-3 py-1 text-[0.58rem] font-extrabold uppercase tracking-[0.18em] text-amber-200">
+              {totalQasidah} DB
+            </span>
+          ) : null}
+        </div>
 
         <h2 className="mt-4 text-[1.35rem] font-extrabold leading-tight tracking-[-0.04em] text-white">
           Buka lirik qasidah dengan cepat saat majelis
         </h2>
 
         <p className="mt-4 text-sm font-medium leading-7 text-slate-300">
-          Nantinya halaman ini berisi kumpulan lirik Arab, latin, dan terjemahan
-          yang nyaman dibaca dari HP.
+          {getLyricsDescription(qasidahItems, isLoading)}
         </p>
 
         <Link
