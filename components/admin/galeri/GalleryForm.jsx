@@ -781,31 +781,6 @@ export default function GalleryForm() {
             />
           </Field>
 
-          <div
-            className={`rounded-2xl border px-4 py-3 ${
-              messageType === "error"
-                ? "border-red-300/16 bg-red-500/10"
-                : messageType === "success"
-                  ? "border-emerald-300/16 bg-emerald-500/10"
-                  : "border-amber-300/12 bg-amber-300/[0.055]"
-            }`}
-          >
-            <p
-              className={`text-xs font-semibold leading-6 ${
-                messageType === "error"
-                  ? "text-red-100"
-                  : messageType === "success"
-                    ? "text-emerald-100"
-                    : "text-amber-100"
-              }`}
-            >
-              {message ||
-                (isEditMode
-                  ? "Mode edit aktif. Perubahan akan disimpan ke Firestore."
-                  : "Upload gambar akan disimpan ke Supabase Storage, lalu data galeri disimpan ke Firestore.")}
-            </p>
-          </div>
-
           <div className="flex justify-end gap-2">
             {isEditMode ? (
               <button

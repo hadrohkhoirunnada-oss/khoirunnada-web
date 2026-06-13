@@ -528,7 +528,7 @@ export default function ProductForm({
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
               {isEditMode
                 ? "Ubah data produk di Firestore. Jika gambar diganti, gambar baru masuk MongoDB GridFS."
-                : "Data produk masuk Firestore, gambar masuk MongoDB GridFS."}
+                : "Silahkan periksa kembali sebelum menambahkan produk."}
             </p>
           </div>
 
@@ -539,11 +539,8 @@ export default function ProductForm({
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="space-y-4">
-            <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-300">
-              Informasi Produk
-            </p>
 
-            <Field label="Nama Produk" helper="Nama produk yang tampil di halaman katalog.">
+            <Field label="Nama Produk">
               <input
                 type="text"
                 value={formData.title}
@@ -610,7 +607,6 @@ export default function ProductForm({
             <div className="grid grid-cols-2 gap-3">
               <Field
                 label="Diskon"
-                helper="Terisi otomatis jika harga coret lebih besar dari harga jual."
               >
                 <input
                   type="text"
@@ -643,11 +639,6 @@ export default function ProductForm({
 
             <Field
               label={isEditMode ? "Gambar Produk" : "Upload Gambar Produk"}
-              helper={
-                isEditMode
-                  ? "Pilih gambar baru hanya jika ingin mengganti gambar produk lama."
-                  : "File gambar disimpan ke MongoDB GridFS, URL gambarnya disimpan di Firestore."
-              }
             >
               <input
                 ref={fileInputRef}

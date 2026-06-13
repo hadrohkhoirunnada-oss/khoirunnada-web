@@ -121,7 +121,7 @@ export default function ProfileHero({ profile = {} }) {
 
               <p className="mt-5 text-center text-[0.78rem] font-medium leading-6 text-slate-400">
                 Website resmi Majelis Sholawat & Hadroh Khoirunnada sebagai
-                pusat informasi, syiar, lirik, galeri, dan layanan booking.
+                pusat informasi, syiar, lirik, galeri, dan layanan booking. Website ini dibuat dan dikelola oleh Founder Nexarin By-Rins.
               </p>
             </div>
           </div>

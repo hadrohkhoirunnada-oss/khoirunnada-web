@@ -78,7 +78,7 @@ export default async function Page() {
                   Storage
                 </p>
                 <p className="mt-2 text-sm font-black text-white">
-                  Supabase
+                  Database
                 </p>
               </div>
             </div>

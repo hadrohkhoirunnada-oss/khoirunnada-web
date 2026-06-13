@@ -138,8 +138,7 @@ export default function Page() {
                 </h1>
 
                 <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                  Data produk disimpan di Firestore, sedangkan file gambar
-                  produk disimpan di MongoDB GridFS.
+                  Halaman ini dibuat untuk mengelola produk penjualan yang di sediakan oleh Khoirunnada.
                 </p>
               </div>
             </div>
