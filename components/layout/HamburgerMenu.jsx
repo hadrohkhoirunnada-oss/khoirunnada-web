@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PUBLIC_NAVIGATION } from "@/constants/navigation";
 import { INITIAL_KRU_PROFILE } from "@/data/initialKruVocalis";
 import { listenKruVocalisAuthState } from "@/services/kruVocalisAuthService";
@@ -123,12 +122,7 @@ function getKruAvatarUrl({ user, profile }) {
 }
 
 function getKruDisplayName({ user, profile }) {
-  return (
-    profile?.name ||
-    user?.name ||
-    user?.email ||
-    "Profil Kru/Vocalis"
-  );
+  return profile?.name || user?.name || user?.email || "Profil Kru/Vocalis";
 }
 
 function getKruSubtitle({ profile }) {
@@ -145,16 +139,27 @@ function getKruSubtitle({ profile }) {
 
 export default function HamburgerMenu({ isOpen, onClose }) {
   const pathname = usePathname();
-  const isKruVocalisActive =
-    pathname === "/login-kru-vocalis" || pathname?.startsWith("/kru-vocalis");
-  const isAdminActive = pathname === "/login";
+  const router = useRouter();
 
+  const [hasMounted, setHasMounted] = useState(false);
   const [kruAccount, setKruAccount] = useState({
     user: null,
     profile: null,
   });
 
+  const isAdminActive = pathname === "/login";
+  const isKruVocalisActive =
+    pathname === "/login-kru-vocalis" || pathname?.startsWith("/kru-vocalis");
+
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) {
+      return undefined;
+    }
+
     const unsubscribe = listenKruVocalisAuthState(({ user, profile }) => {
       setKruAccount({
         user,
@@ -163,11 +168,11 @@ export default function HamburgerMenu({ isOpen, onClose }) {
     });
 
     return unsubscribe;
-  }, []);
+  }, [hasMounted]);
 
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
+    if (!hasMounted || typeof document === "undefined") {
+      return undefined;
     }
 
     document.body.classList.toggle("public-menu-open", isOpen);
@@ -191,7 +196,7 @@ export default function HamburgerMenu({ isOpen, onClose }) {
         })
       );
     };
-  }, [isOpen]);
+  }, [hasMounted, isOpen]);
 
   const hasKruProfile = Boolean(kruAccount.user?.uid && kruAccount.profile?.uid);
 
@@ -207,6 +212,30 @@ export default function HamburgerMenu({ isOpen, onClose }) {
       avatarUrl: getKruAvatarUrl(kruAccount),
     };
   }, [hasKruProfile, kruAccount]);
+
+  function closeAndNavigate(href) {
+    if (!href) {
+      return;
+    }
+
+    onClose?.();
+
+    if (href !== pathname) {
+      router.push(href);
+    }
+  }
+
+  function handlePublicNavigation(item) {
+    if (item?.isLocked) {
+      return;
+    }
+
+    closeAndNavigate(item?.href);
+  }
+
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <div
@@ -232,10 +261,10 @@ export default function HamburgerMenu({ isOpen, onClose }) {
         }`}
       >
         <div className="shrink-0">
-          <Link
-            href="/"
-            onClick={onClose}
-            className="relative mb-4 flex min-h-[4.35rem] items-center gap-3 overflow-hidden rounded-[1.45rem] border border-amber-300/12 bg-[#0d0d0a] px-3.5 py-3 shadow-xl shadow-black/25 active:scale-[0.99]"
+          <button
+            type="button"
+            onClick={() => closeAndNavigate("/")}
+            className="relative mb-4 flex min-h-[4.35rem] w-full items-center gap-3 overflow-hidden rounded-[1.45rem] border border-amber-300/12 bg-[#0d0d0a] px-3.5 py-3 text-left shadow-xl shadow-black/25 active:scale-[0.99]"
           >
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_45%,rgba(0,0,0,0.24))]" />
             <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
@@ -254,7 +283,7 @@ export default function HamburgerMenu({ isOpen, onClose }) {
                 Majelis Sholawat
               </p>
             </div>
-          </Link>
+          </button>
         </div>
 
         <nav className="min-h-0 flex-1 overflow-y-auto pb-4">
@@ -263,7 +292,7 @@ export default function HamburgerMenu({ isOpen, onClose }) {
               const isLocked = Boolean(item.isLocked);
               const isActive = !isLocked && pathname === item.href;
 
-              const itemClassName = `group flex min-h-[3.15rem] w-full items-center justify-between rounded-[1.15rem] border px-3.5 text-left text-[0.92rem] font-extrabold tracking-[-0.03em] active:scale-[0.99] ${
+              const itemClassName = `group flex min-h-[3.15rem] w-full items-center justify-between rounded-[1.15rem] border px-3.5 text-left text-[0.92rem] font-extrabold tracking-[-0.03em] transition active:scale-[0.99] ${
                 isActive
                   ? "border-amber-300/35 bg-[#211b07] text-amber-50 shadow-[0_10px_22px_rgba(0,0,0,0.26)]"
                   : isLocked
@@ -271,8 +300,16 @@ export default function HamburgerMenu({ isOpen, onClose }) {
                     : "border-amber-300/10 bg-[#0d0d0b] text-slate-100 hover:border-amber-300/20"
               }`;
 
-              const itemContent = (
-                <>
+              return (
+                <button
+                  key={`${item.href}-${item.label}`}
+                  type="button"
+                  disabled={isLocked}
+                  aria-disabled={isLocked ? "true" : "false"}
+                  title={isLocked ? "Halaman sedang disusun" : item.label}
+                  onClick={() => handlePublicNavigation(item)}
+                  className={itemClassName}
+                >
                   <span className="flex min-w-0 items-center gap-3">
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[0.62rem] font-black ${
@@ -304,33 +341,7 @@ export default function HamburgerMenu({ isOpen, onClose }) {
                       <ArrowIcon className="h-4 w-4" />
                     )}
                   </span>
-                </>
-              );
-
-              if (isLocked) {
-                return (
-                  <button
-                    key={item.href}
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    title="Halaman sedang disusun"
-                    className={itemClassName}
-                  >
-                    {itemContent}
-                  </button>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onClose}
-                  className={itemClassName}
-                >
-                  {itemContent}
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -342,10 +353,10 @@ export default function HamburgerMenu({ isOpen, onClose }) {
           </p>
 
           <div className="space-y-2.5 rounded-[1.45rem] border border-amber-300/10 bg-black/28 p-2">
-            <Link
-              href="/login"
-              onClick={onClose}
-              className={`flex min-h-[3.15rem] items-center justify-between gap-3 rounded-[1.05rem] border px-3 active:scale-[0.99] ${
+            <button
+              type="button"
+              onClick={() => closeAndNavigate("/login")}
+              className={`flex min-h-[3.15rem] w-full items-center justify-between gap-3 rounded-[1.05rem] border px-3 text-left active:scale-[0.99] ${
                 isAdminActive
                   ? "border-amber-300/30 bg-[#211b07] text-amber-50"
                   : "border-amber-300/10 bg-[#090908] text-slate-100"
@@ -376,11 +387,11 @@ export default function HamburgerMenu({ isOpen, onClose }) {
               >
                 <ArrowIcon className="h-3.5 w-3.5" />
               </span>
-            </Link>
+            </button>
 
-            <Link
-              href={kruMenuData.href}
-              onClick={onClose}
+            <button
+              type="button"
+              onClick={() => closeAndNavigate(kruMenuData.href)}
               className={`relative flex min-h-[3.35rem] w-full items-center justify-between gap-3 overflow-hidden rounded-[1.05rem] border px-3 py-2 text-left active:scale-[0.99] ${
                 isKruVocalisActive
                   ? "border-amber-300/36 bg-[#191406] text-amber-50 shadow-[0_12px_24px_rgba(0,0,0,0.28)]"
@@ -433,7 +444,7 @@ export default function HamburgerMenu({ isOpen, onClose }) {
               >
                 <ArrowIcon className="h-3.5 w-3.5" />
               </span>
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

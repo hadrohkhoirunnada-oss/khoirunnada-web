@@ -224,12 +224,13 @@ const settingMenus = [
     isReady: true,
   },
   {
-    title: "Pengaturan Website",
+    title: "Pengaturan Profil & Sejarah",
     description:
-      "Atur informasi umum website, teks, dan identitas tampilan utama.",
+      "Atur profil majelis, informasi utama, sejarah singkat, kronologi berdiri, harapan, doa, dan nilai majelis.",
+    href: "/admin/pengaturan/profil-sejarah",
     icon: GlobeIcon,
-    status: "Terkunci",
-    isReady: false,
+    status: "Aktif",
+    isReady: true,
   },
   {
     title: "Tampilan Website",
@@ -350,9 +351,9 @@ export default function Page() {
             </div>
 
             <p className="mt-5 text-sm font-medium leading-7 text-slate-300">
-              Kelola konfigurasi website Khoirunnada. Untuk saat ini, menu yang
-              sudah aktif adalah nomor admin WhatsApp, media sosial, dan
-              copyright footer.
+              Kelola konfigurasi website Khoirunnada. Menu yang sudah aktif
+              adalah nomor admin WhatsApp, media sosial, copyright footer, dan
+              pengaturan profil serta sejarah.
             </p>
           </div>
         </div>

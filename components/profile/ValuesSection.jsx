@@ -1,25 +1,42 @@
-const values = [
-  {
-    title: "Adab",
-    description:
-      "Menjaga sikap, tutur kata, dan ketertiban dalam majelis maupun saat tampil di tengah masyarakat.",
-  },
-  {
-    title: "Kebersamaan",
-    description:
-      "Menguatkan ukhuwah, kekompakan, dan rasa saling mendukung antaranggota.",
-  },
-  {
-    title: "Syiar",
-    description:
-      "Menghadirkan sholawat dan hadroh sebagai jalan kebaikan yang dekat dengan masyarakat.",
-  },
-  {
-    title: "Amanah",
-    description:
-      "Menjaga kepercayaan dalam setiap undangan, jadwal, dan kegiatan yang dijalankan.",
-  },
-];
+function parseValuesText(text = "") {
+  return String(text)
+    .split(/\n\s*\n/g)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block, index) => {
+      const separatorIndex = block.indexOf(":");
+
+      if (separatorIndex === -1) {
+        return {
+          title: `Nilai ${index + 1}`,
+          description: block,
+        };
+      }
+
+      return {
+        title: block.slice(0, separatorIndex).trim(),
+        description: block.slice(separatorIndex + 1).trim(),
+      };
+    })
+    .filter((item) => item.title && item.description);
+}
+
+function getValues(profile = {}) {
+  if (Array.isArray(profile.valuesItems)) {
+    const items = profile.valuesItems
+      .map((item) => ({
+        title: String(item?.title || "").trim(),
+        description: String(item?.description || "").trim(),
+      }))
+      .filter((item) => item.title && item.description);
+
+    if (items.length > 0) {
+      return items;
+    }
+  }
+
+  return parseValuesText(profile.valuesText);
+}
 
 function ValueIcon({ index }) {
   return (
@@ -29,7 +46,9 @@ function ValueIcon({ index }) {
   );
 }
 
-export default function ValuesSection() {
+export default function ValuesSection({ profile = {} }) {
+  const values = getValues(profile);
+
   return (
     <section className="relative overflow-hidden rounded-[1.9rem] border border-amber-300/18 bg-white/[0.055] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-[10px]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.105),rgba(255,255,255,0.025)_34%,rgba(0,0,0,0.16)_72%,rgba(0,0,0,0.24))]" />
@@ -50,7 +69,7 @@ export default function ValuesSection() {
         <div className="mt-5 grid gap-3.5">
           {values.map((value, index) => (
             <div
-              key={value.title}
+              key={`${value.title}-${index}`}
               className="relative overflow-hidden rounded-2xl border border-amber-300/14 bg-black/28 p-4 shadow-lg shadow-black/20 backdrop-blur-xl"
             >
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_48%,rgba(0,0,0,0.14))]" />

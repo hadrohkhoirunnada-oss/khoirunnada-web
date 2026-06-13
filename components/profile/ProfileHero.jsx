@@ -1,6 +1,48 @@
 import LogoBrand from "@/components/shared/LogoBrand";
 
-export default function ProfileHero() {
+function parseMainInfoText(text = "") {
+  return String(text)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const separatorIndex = line.indexOf(":");
+
+      if (separatorIndex === -1) {
+        return {
+          label: "Informasi",
+          value: line,
+        };
+      }
+
+      return {
+        label: line.slice(0, separatorIndex).trim(),
+        value: line.slice(separatorIndex + 1).trim(),
+      };
+    })
+    .filter((item) => item.label && item.value);
+}
+
+function getMainInfo(profile = {}) {
+  if (Array.isArray(profile.mainInfoItems)) {
+    const items = profile.mainInfoItems
+      .map((item) => ({
+        label: String(item?.label || "").trim(),
+        value: String(item?.value || "").trim(),
+      }))
+      .filter((item) => item.label && item.value);
+
+    if (items.length > 0) {
+      return items;
+    }
+  }
+
+  return parseMainInfoText(profile.mainInfoText);
+}
+
+export default function ProfileHero({ profile = {} }) {
+  const mainInfo = getMainInfo(profile);
+
   return (
     <section className="relative isolate -mx-5 overflow-hidden border-b border-amber-300/10 bg-[#030407] px-5 pb-10 pt-8 text-center shadow-[0_18px_55px_rgba(0,0,0,0.42)]">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(245,197,66,0.11),rgba(255,255,255,0.018)_32%,rgba(0,0,0,0.28)_68%,rgba(2,6,23,0.96))]" />
@@ -37,34 +79,49 @@ export default function ProfileHero() {
 
         <div className="mx-auto mt-5 h-px w-32 bg-gradient-to-r from-transparent via-amber-300/75 to-transparent shadow-[0_0_14px_rgba(245,197,66,0.45)]" />
 
-        <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.46em] text-amber-300 drop-shadow-[0_0_12px_rgba(245,197,66,0.18)]">
-          Profil
+        <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.34em] text-amber-300 drop-shadow-[0_0_12px_rgba(245,197,66,0.18)]">
+          {profile.heroEyebrow || "Profil & Sejarah"}
         </p>
 
         <h1 className="mt-4 text-[2.05rem] font-black leading-[1.08] tracking-[-0.065em] text-white drop-shadow-[0_12px_35px_rgba(0,0,0,0.58)]">
-          Khoirunnada
+          {profile.heroTitle || "Khoirunnada"}
         </h1>
 
         <p className="mx-auto mt-5 max-w-[340px] text-[0.98rem] font-semibold leading-8 text-slate-300">
-          Majelis Sholawat dan Hadroh yang hadir sebagai ruang syiar, sholawat,
-          kebersamaan, dan kecintaan kepada Rasulullah ﷺ.
+          {profile.heroDescription}
         </p>
 
         <div className="relative mt-8 overflow-hidden rounded-[1.72rem] p-[1px] shadow-xl shadow-black/25">
           <div className="pointer-events-none absolute -inset-[80%] animate-[spin_7s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_62deg,rgba(245,197,66,0.95)_86deg,rgba(255,255,255,0.7)_102deg,rgba(245,197,66,0.35)_122deg,transparent_152deg,transparent_360deg)]" />
 
-          <div className="relative overflow-hidden rounded-[1.65rem] bg-black/55 p-5 text-center backdrop-blur-2xl">
+          <div className="relative overflow-hidden rounded-[1.65rem] bg-black/55 p-5 text-left backdrop-blur-2xl">
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018)_42%,rgba(0,0,0,0.22))]" />
             <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/40 to-transparent" />
 
             <div className="relative z-10">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.3em] text-amber-300">
-                Identitas
+              <p className="text-center text-[0.68rem] font-extrabold uppercase tracking-[0.3em] text-amber-300">
+                Informasi Utama
               </p>
 
-              <p className="mt-3 text-sm font-medium leading-7 text-slate-300">
-                Website ini Adalah Website Resmi Dari Majelis Sholawat & Hadroh Khoirunnada,
-                Yang Dibuat & Dikembangkan Oleh Founder Nexarin By-Rins
+              <div className="mt-5 space-y-3">
+                {mainInfo.map((item) => (
+                  <div
+                    key={`${item.label}-${item.value}`}
+                    className="rounded-2xl border border-amber-300/10 bg-white/[0.035] px-4 py-3"
+                  >
+                    <p className="text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-amber-200/80">
+                      {item.label}
+                    </p>
+                    <p className="mt-1.5 text-[0.92rem] font-semibold leading-6 text-slate-100">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-5 text-center text-[0.78rem] font-medium leading-6 text-slate-400">
+                Website resmi Majelis Sholawat & Hadroh Khoirunnada sebagai
+                pusat informasi, syiar, lirik, galeri, dan layanan booking.
               </p>
             </div>
           </div>
