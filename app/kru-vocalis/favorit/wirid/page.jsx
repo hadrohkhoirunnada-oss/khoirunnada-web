@@ -8,6 +8,7 @@ export const metadata = {
 export default function WiridFavoritKruVocalisPage() {
   return (
     <KruVocalisFavoritePage
+      favoriteType="wirid"
       eyebrow="Favorit Kru"
       title="Wirid Favorit"
       description="Simpan dan kelola daftar wirid favorit untuk latihan, amalan rutin, dan kebutuhan majelis."

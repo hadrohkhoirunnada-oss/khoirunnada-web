@@ -8,6 +8,7 @@ export const metadata = {
 export default function QosidahFavoritKruVocalisPage() {
   return (
     <KruVocalisFavoritePage
+      favoriteType="qosidah"
       eyebrow="Favorit Kru"
       title="Qosidah Favorit"
       description="Simpan dan kelola daftar qosidah favorit yang sering dibuka saat latihan maupun majelis."

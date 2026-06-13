@@ -9,6 +9,7 @@ import {
   listenKruVocalisAuthState,
   logoutKruVocalis,
 } from "@/services/kruVocalisAuthService";
+import { getKruVocalisDashboardCounts } from "@/services/kruVocalisMemberDataService";
 
 function ArrowIcon({ className = "" }) {
   return (
@@ -153,6 +154,37 @@ function SettingsIcon({ className = "" }) {
   );
 }
 
+function LockIcon({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M7.75 10.25V8.15a4.25 4.25 0 0 1 8.5 0v2.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6.75 10.25h10.5a1.8 1.8 0 0 1 1.8 1.8v6.1a1.8 1.8 0 0 1-1.8 1.8H6.75a1.8 1.8 0 0 1-1.8-1.8v-6.1a1.8 1.8 0 0 1 1.8-1.8Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 14.35v1.75"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function LogoutIcon({ className = "" }) {
   return (
     <svg
@@ -179,64 +211,6 @@ function LogoutIcon({ className = "" }) {
     </svg>
   );
 }
-
-const ACCOUNT_MENUS = [
-  {
-    title: "Edit Profil",
-    description: "Lengkapi nama, foto, dan identitas anggota.",
-    icon: UserIcon,
-    status: "Disiapkan",
-    href: "/kru-vocalis/edit-profil",
-  },
-  {
-    title: "Role Kru/Vocalis",
-    description: "Atur peran seperti vocalis, terbang, bass, dan lainnya.",
-    icon: RoleIcon,
-    status: "Disiapkan",
-    href: "/kru-vocalis/role",
-  },
-];
-
-const FAVORITE_MENUS = [
-  {
-    title: "Qosidah Favorit",
-    description: "Bacaan qosidah yang sering dibuka atau disimpan.",
-    icon: StarIcon,
-    status: "0 Bacaan",
-    href: "/kru-vocalis/favorit/qosidah",
-  },
-  {
-    title: "Wirid Favorit",
-    description: "Wirid pilihan untuk latihan dan amalan rutin.",
-    icon: StarIcon,
-    status: "0 Bacaan",
-    href: "/kru-vocalis/favorit/wirid",
-  },
-  {
-    title: "Maulid Favorit",
-    description: "Bacaan maulid yang ingin disimpan anggota.",
-    icon: StarIcon,
-    status: "0 Bacaan",
-    href: "/kru-vocalis/favorit/maulid",
-  },
-];
-
-const INTERNAL_MENUS = [
-  {
-    title: "Catatan Latihan",
-    description: "Simpan catatan nada, tugas, dan kebutuhan latihan.",
-    icon: NoteIcon,
-    status: "Segera",
-    href: "/kru-vocalis/catatan",
-  },
-  {
-    title: "Pengaturan Akun",
-    description: "Kelola akses dan preferensi akun internal.",
-    icon: SettingsIcon,
-    status: "Segera",
-    href: "/kru-vocalis/pengaturan",
-  },
-];
 
 function normalizeText(value) {
   return String(value || "").toLowerCase().trim();
@@ -307,36 +281,68 @@ function getStatusContent(status) {
   };
 }
 
-function MenuItem({ title, description, status, icon: Icon, href }) {
+function MenuItem({
+  title,
+  description,
+  status,
+  icon: Icon,
+  href,
+  isLocked = false,
+}) {
   const content = (
-    <div className="group flex min-h-[4.9rem] items-center justify-between gap-4 rounded-[1.55rem] border border-amber-300/10 bg-black/30 px-4 py-3 shadow-lg shadow-black/20 transition active:scale-[0.99]">
+    <div
+      className={`group flex min-h-[4.9rem] items-center justify-between gap-4 rounded-[1.55rem] border px-4 py-3 shadow-lg shadow-black/20 transition ${isLocked
+          ? "border-white/8 bg-black/22 opacity-70"
+          : "border-amber-300/10 bg-black/30 active:scale-[0.99]"
+        }`}
+    >
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-300/12 bg-[#121009] text-amber-200">
+        <span
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${isLocked
+              ? "border-slate-500/12 bg-white/[0.035] text-slate-500"
+              : "border-amber-300/12 bg-[#121009] text-amber-200"
+            }`}
+        >
           <Icon className="h-5 w-5" />
         </span>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[0.95rem] font-black tracking-[-0.04em] text-white">
+          <h3
+            className={`truncate text-[0.95rem] font-black tracking-[-0.04em] ${isLocked ? "text-slate-400" : "text-white"
+              }`}
+          >
             {title}
           </h3>
           <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-500">
             {description}
           </p>
           {status ? (
-            <p className="mt-1.5 text-[0.58rem] font-black uppercase tracking-[0.18em] text-amber-300/75">
+            <p
+              className={`mt-1.5 text-[0.58rem] font-black uppercase tracking-[0.18em] ${isLocked ? "text-slate-500" : "text-amber-300/75"
+                }`}
+            >
               {status}
             </p>
           ) : null}
         </div>
       </div>
 
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/10 bg-[#070706] text-amber-300">
-        <ArrowIcon className="h-4 w-4" />
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${isLocked
+            ? "border-slate-500/12 bg-black/25 text-slate-500"
+            : "border-amber-300/10 bg-[#070706] text-amber-300"
+          }`}
+      >
+        {isLocked ? (
+          <LockIcon className="h-4 w-4" />
+        ) : (
+          <ArrowIcon className="h-4 w-4" />
+        )}
       </span>
     </div>
   );
 
-  if (href) {
+  if (href && !isLocked) {
     return (
       <Link href={href} className="block">
         {content}
@@ -488,6 +494,16 @@ export default function KruVocalisProfilePage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [dashboardCounts, setDashboardCounts] = useState({
+    notes: 0,
+    favorites: {
+      qosidah: 0,
+      wirid: 0,
+      maulid: 0,
+    },
+  });
+  const [isLoadingDashboardCounts, setIsLoadingDashboardCounts] =
+    useState(true);
 
   useEffect(() => {
     const unsubscribe = listenKruVocalisAuthState(({ user, profile }) => {
@@ -505,6 +521,69 @@ export default function KruVocalisProfilePage() {
 
     return unsubscribe;
   }, [router]);
+
+  useEffect(() => {
+    const cleanStatus = normalizeText(authState.profile?.status);
+
+    if (!authState.user || cleanStatus !== "approved") {
+      setDashboardCounts({
+        notes: 0,
+        favorites: {
+          qosidah: 0,
+          wirid: 0,
+          maulid: 0,
+        },
+      });
+      setIsLoadingDashboardCounts(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadDashboardCounts() {
+      try {
+        setIsLoadingDashboardCounts(true);
+
+        const counts = await getKruVocalisDashboardCounts();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDashboardCounts({
+          notes: Number(counts?.notes || 0),
+          favorites: {
+            qosidah: Number(counts?.favorites?.qosidah || 0),
+            wirid: Number(counts?.favorites?.wirid || 0),
+            maulid: Number(counts?.favorites?.maulid || 0),
+          },
+        });
+      } catch (error) {
+        console.error("Gagal memuat ringkasan Kru/Vocalis:", error);
+
+        if (isMounted) {
+          setDashboardCounts({
+            notes: 0,
+            favorites: {
+              qosidah: 0,
+              wirid: 0,
+              maulid: 0,
+            },
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingDashboardCounts(false);
+        }
+      }
+    }
+
+    loadDashboardCounts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authState.user, authState.profile]);
 
   const profileData = useMemo(() => {
     const { user, profile } = authState;
@@ -551,6 +630,73 @@ export default function KruVocalisProfilePage() {
 
     return Array.from(new Set([...roles, ...fallbackRoles])).slice(0, 3);
   }, [profileData.roles]);
+
+  const accountMenus = [
+    {
+      title: "Edit Profil",
+      description: "Lengkapi nama, foto, dan identitas anggota.",
+      icon: UserIcon,
+      status: "Aktif",
+      href: "/kru-vocalis/edit-profil",
+    },
+    {
+      title: "Role Kru/Vocalis",
+      description:
+        "Lihat peran aktif seperti vocalis, terbang, bass, dan lainnya.",
+      icon: RoleIcon,
+      status: profileData.mainRole || "Aktif",
+      href: "/kru-vocalis/role",
+    },
+  ];
+
+  const favoriteMenus = [
+    {
+      title: "Qosidah Favorit",
+      description: "Bacaan qosidah yang sering dibuka atau disimpan.",
+      icon: StarIcon,
+      status: isLoadingDashboardCounts
+        ? "Memuat"
+        : `${dashboardCounts.favorites.qosidah} Bacaan`,
+      href: "/kru-vocalis/favorit/qosidah",
+    },
+    {
+      title: "Wirid Favorit",
+      description: "Wirid pilihan untuk latihan dan amalan rutin.",
+      icon: StarIcon,
+      status: isLoadingDashboardCounts
+        ? "Memuat"
+        : `${dashboardCounts.favorites.wirid} Bacaan`,
+      href: "/kru-vocalis/favorit/wirid",
+    },
+    {
+      title: "Maulid Favorit",
+      description: "Bacaan maulid yang ingin disimpan anggota.",
+      icon: StarIcon,
+      status: "Terkunci",
+      href: "",
+      isLocked: true,
+    },
+  ];
+
+  const internalMenus = [
+    {
+      title: "Catatan Latihan",
+      description: "Simpan catatan nada, tugas, dan kebutuhan latihan.",
+      icon: NoteIcon,
+      status: isLoadingDashboardCounts
+        ? "Memuat"
+        : `${dashboardCounts.notes} Catatan`,
+      href: "/kru-vocalis/catatan",
+    },
+    {
+      title: "Pengaturan Akun",
+      description: "Kelola akses dan preferensi akun internal.",
+      icon: SettingsIcon,
+      status: "Terkunci",
+      href: "",
+      isLocked: true,
+    },
+  ];
 
   async function handleLogout() {
     if (isLoggingOut) {
@@ -670,7 +816,7 @@ export default function KruVocalisProfilePage() {
         </div>
 
         <div className="space-y-3">
-          {ACCOUNT_MENUS.map((item) => (
+          {accountMenus.map((item) => (
             <MenuItem key={item.title} {...item} />
           ))}
         </div>
@@ -684,7 +830,7 @@ export default function KruVocalisProfilePage() {
         </div>
 
         <div className="space-y-3">
-          {FAVORITE_MENUS.map((item) => (
+          {favoriteMenus.map((item) => (
             <MenuItem key={item.title} {...item} />
           ))}
         </div>
@@ -698,7 +844,7 @@ export default function KruVocalisProfilePage() {
         </div>
 
         <div className="space-y-3">
-          {INTERNAL_MENUS.map((item) => (
+          {internalMenus.map((item) => (
             <MenuItem key={item.title} {...item} />
           ))}
         </div>

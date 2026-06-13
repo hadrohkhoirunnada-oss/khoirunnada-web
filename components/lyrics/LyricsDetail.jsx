@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ArabicTextBlock from "@/components/lyrics/ArabicTextBlock";
 import LyricsActions from "@/components/lyrics/LyricsActions";
+import KruVocalisFavoriteButton from "@/components/lyrics/KruVocalisFavoriteButton";
 import Link from "next/link";
 
 function BackIcon({ className = "" }) {
@@ -153,11 +154,10 @@ function ReadingModeToggle({ value, onChange }) {
         <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
         <span
-          className={`absolute bottom-1.5 top-1.5 rounded-full bg-gradient-to-b from-amber-200 to-amber-400 shadow-lg shadow-amber-950/25 transition-all duration-300 ease-out ${
-            value === "normal"
+          className={`absolute bottom-1.5 top-1.5 rounded-full bg-gradient-to-b from-amber-200 to-amber-400 shadow-lg shadow-amber-950/25 transition-all duration-300 ease-out ${value === "normal"
               ? "left-1.5 w-[calc(50%-0.375rem)]"
               : "left-1/2 w-[calc(50%-0.375rem)]"
-          }`}
+            }`}
         />
 
         {modes.map((mode) => {
@@ -168,11 +168,10 @@ function ReadingModeToggle({ value, onChange }) {
               key={mode.id}
               type="button"
               onClick={() => onChange(mode.id)}
-              className={`relative z-10 min-h-10 flex-1 rounded-full px-3 text-sm font-bold transition active:scale-[0.98] ${
-                isActive
+              className={`relative z-10 min-h-10 flex-1 rounded-full px-3 text-sm font-bold transition active:scale-[0.98] ${isActive
                   ? "text-slate-950"
                   : "text-slate-300 hover:text-amber-100"
-              }`}
+                }`}
             >
               {mode.label}
             </button>
@@ -371,6 +370,8 @@ export default function LyricsDetail({ lyric }) {
 
         <LyricsActions lyric={lyric} />
 
+        <KruVocalisFavoriteButton lyric={lyric} />
+
         <ReadingModeToggle value={readingMode} onChange={setReadingMode} />
 
         <ArabicTextBlock
@@ -448,11 +449,10 @@ export default function LyricsDetail({ lyric }) {
             type="button"
             onClick={handleScrollToTop}
             aria-label="Kembali ke atas"
-            className={`pointer-events-auto relative flex h-12 w-12 items-center justify-center rounded-full border border-amber-300/18 bg-[#080806]/90 text-amber-200 shadow-[0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl transition duration-300 active:scale-95 ${
-              showScrollTop
+            className={`pointer-events-auto relative flex h-12 w-12 items-center justify-center rounded-full border border-amber-300/18 bg-[#080806]/90 text-amber-200 shadow-[0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl transition duration-300 active:scale-95 ${showScrollTop
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0 pointer-events-none"
-            }`}
+              }`}
           >
             <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.22),transparent_58%)]" />
             <ArrowUpIcon className="relative z-10 h-5 w-5" />

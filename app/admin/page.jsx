@@ -1,5 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AdminShell from "@/components/admin/AdminShell";
-import AdminStatCard from "@/components/admin/AdminStatCard";
+import { getQasidahItems } from "@/services/qasidahService";
+import { getGalleryItems } from "@/services/galleryService";
+import { getShopProducts } from "@/services/shopProductService";
 
 function BookingIcon({ className = "" }) {
   return (
@@ -86,45 +91,259 @@ function ShopIcon({ className = "" }) {
   );
 }
 
+function LockIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M7.75 10.25V8.15a4.25 4.25 0 0 1 8.5 0v2.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6.75 10.25h10.5a1.8 1.8 0 0 1 1.8 1.8v6.1a1.8 1.8 0 0 1-1.8 1.8H6.75a1.8 1.8 0 0 1-1.8-1.8v-6.1a1.8 1.8 0 0 1 1.8-1.8Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 14.35v1.75"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function RefreshIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M19.25 12a7.25 7.25 0 0 1-12.4 5.12M4.75 12a7.25 7.25 0 0 1 12.4-5.12"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.25 3.75v3.5h-3.5M6.75 20.25v-3.5h3.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const ADMIN_WHATSAPP_URL =
   "https://wa.me/6285173057576?text=Assalamu%27alaikum%20admin%2C%20saya%20ingin%20bertanya%20tentang%20cara%20menggunakan%20halaman%20admin%20Khoirunnada.";
 
-const stats = [
-  {
-    title: "Booking",
-    value: "0",
-    description: "Booking masuk",
-    icon: BookingIcon,
-    imageUrl:
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    title: "Qasidah",
-    value: "0",
-    description: "Data lirik",
-    icon: LyricsIcon,
-    imageUrl:
-      "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    title: "Galeri",
-    value: "0",
-    description: "Dokumentasi",
-    icon: GalleryIcon,
-    imageUrl:
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    title: "Shop & Katalog",
-    value: "0",
-    description: "Produk katalog",
-    icon: ShopIcon,
-    imageUrl:
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80",
-  },
-];
+const INITIAL_DASHBOARD_COUNTS = {
+  booking: 0,
+  qasidah: 0,
+  gallery: 0,
+  products: 0,
+};
+
+function getFulfilledArray(result) {
+  if (result?.status !== "fulfilled") {
+    return [];
+  }
+
+  if (!Array.isArray(result.value)) {
+    return [];
+  }
+
+  return result.value;
+}
+
+function AdminDashboardStatCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+  tone = "amber",
+  isLoading = false,
+  isLocked = false,
+}) {
+  const toneClass =
+    tone === "emerald"
+      ? "border-emerald-400/18 bg-emerald-400/10 text-emerald-300"
+      : tone === "sky"
+      ? "border-sky-400/18 bg-sky-400/10 text-sky-300"
+      : tone === "violet"
+      ? "border-violet-400/18 bg-violet-400/10 text-violet-300"
+      : "border-amber-300/18 bg-amber-300/10 text-amber-300";
+
+  return (
+    <article
+      className={`group relative min-h-[9.4rem] overflow-hidden rounded-[1.65rem] border p-4 shadow-xl shadow-black/25 backdrop-blur-xl ${
+        isLocked
+          ? "border-white/8 bg-black/24 opacity-75"
+          : "border-amber-300/14 bg-black/34"
+      }`}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_0%,rgba(245,197,66,0.11),transparent_42%),linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012)_44%,rgba(0,0,0,0.24))]" />
+      <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/35 to-transparent" />
+      <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-300/8 blur-2xl" />
+
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p
+              className={`text-[0.64rem] font-extrabold uppercase tracking-[0.25em] ${
+                isLocked ? "text-slate-500" : "text-amber-300"
+              }`}
+            >
+              {title}
+            </p>
+
+            {isLocked ? (
+              <p className="mt-2 inline-flex rounded-full border border-slate-500/14 bg-white/[0.035] px-2.5 py-1 text-[0.55rem] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+                Terkunci
+              </p>
+            ) : null}
+          </div>
+
+          <span
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border shadow-inner shadow-black/25 ${
+              isLocked
+                ? "border-slate-500/14 bg-white/[0.035] text-slate-500"
+                : toneClass
+            }`}
+          >
+            {isLocked ? <LockIcon className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+          </span>
+        </div>
+
+        <div className="mt-auto pt-5">
+          <div className="flex items-end gap-2">
+            <p
+              className={`text-[2rem] font-black leading-none tracking-[-0.08em] drop-shadow-[0_10px_28px_rgba(0,0,0,0.7)] ${
+                isLocked ? "text-slate-500" : "text-white"
+              }`}
+            >
+              {isLocked ? "—" : isLoading ? "…" : value}
+            </p>
+
+            {isLocked ? (
+              <p className="pb-1 text-[0.62rem] font-extrabold uppercase tracking-[0.16em] text-slate-600">
+                Belum Aktif
+              </p>
+            ) : null}
+          </div>
+
+          <p className="mt-3 text-sm font-bold leading-5 text-slate-300">
+            {description}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function Page() {
+  const [dashboardCounts, setDashboardCounts] = useState(
+    INITIAL_DASHBOARD_COUNTS
+  );
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboardStats() {
+      try {
+        setIsLoadingStats(true);
+        setStatsError("");
+
+        const [qasidahResult, galleryResult, productsResult] =
+          await Promise.allSettled([
+            getQasidahItems(),
+            getGalleryItems(),
+            getShopProducts(),
+          ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        const qasidahItems = getFulfilledArray(qasidahResult);
+        const galleryItems = getFulfilledArray(galleryResult);
+        const productItems = getFulfilledArray(productsResult);
+
+        setDashboardCounts({
+          booking: 0,
+          qasidah: qasidahItems.length,
+          gallery: galleryItems.length,
+          products: productItems.length,
+        });
+
+        if (
+          qasidahResult.status === "rejected" ||
+          galleryResult.status === "rejected" ||
+          productsResult.status === "rejected"
+        ) {
+          setStatsError(
+            "Sebagian data statistik gagal dimuat. Cek koneksi atau rules Firestore."
+          );
+        }
+      } catch (error) {
+        console.error("Gagal memuat statistik dashboard admin:", error);
+
+        if (isMounted) {
+          setDashboardCounts(INITIAL_DASHBOARD_COUNTS);
+          setStatsError(
+            error?.message || "Gagal memuat statistik dashboard admin."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingStats(false);
+        }
+      }
+    }
+
+    loadDashboardStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const stats = [
+    {
+      title: "Booking",
+      value: dashboardCounts.booking,
+      description: "Masih Dalam Tahap Pengembangan",
+      icon: BookingIcon,
+      tone: "emerald",
+      isLocked: true,
+    },
+    {
+      title: "Qasidah",
+      value: dashboardCounts.qasidah,
+      description: "Data lirik",
+      icon: LyricsIcon,
+      tone: "amber",
+    },
+    {
+      title: "Galeri",
+      value: dashboardCounts.gallery,
+      description: "Dokumentasi",
+      icon: GalleryIcon,
+      tone: "sky",
+    },
+    {
+      title: "Shop & Katalog",
+      value: dashboardCounts.products,
+      description: "Produk katalog",
+      icon: ShopIcon,
+      tone: "violet",
+    },
+  ];
+
   return (
     <AdminShell>
       <section className="space-y-5">
@@ -144,9 +363,36 @@ export default function Page() {
           </div>
         </section>
 
+        {statsError ? (
+          <div className="relative overflow-hidden rounded-2xl border border-red-400/18 bg-red-400/10 p-4 text-sm font-semibold leading-6 text-red-100 shadow-lg shadow-black/20">
+            {statsError}
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300">
+              Ringkasan Data
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              Statistik Dashboard
+            </p>
+          </div>
+
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-amber-300/14 bg-black/30 text-amber-200 shadow-inner shadow-black/25">
+            <RefreshIcon
+              className={`h-4 w-4 ${isLoadingStats ? "animate-spin" : ""}`}
+            />
+          </span>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat) => (
-            <AdminStatCard key={stat.title} {...stat} />
+            <AdminDashboardStatCard
+              key={stat.title}
+              {...stat}
+              isLoading={isLoadingStats}
+            />
           ))}
         </div>
 
@@ -165,15 +411,15 @@ export default function Page() {
 
             <div className="mt-4 space-y-3 text-sm font-medium leading-7 text-slate-300">
               <p>
-                Pilih menu admin melalui tombol garis tiga di bagian header untuk
-                mengelola data qasidah, shop & katalog, galeri, QR booking,
-                pengaturan website, dan kebutuhan admin lainnya.
+                Pilih menu admin melalui tombol garis tiga di bagian header
+                untuk mengelola data qasidah, shop & katalog, galeri, QR
+                booking, pengaturan website, dan kebutuhan admin lainnya.
               </p>
 
               <p>
-                Setiap perubahan data yang dimasukkan akan menjadi acuan tampilan
-                website, jadi pastikan judul, tanggal, lokasi, teks, dan gambar
-                sudah benar sebelum disimpan.
+                Setiap perubahan data yang dimasukkan akan menjadi acuan
+                tampilan website, jadi pastikan judul, tanggal, lokasi, teks,
+                dan gambar sudah benar sebelum disimpan.
               </p>
             </div>
 
