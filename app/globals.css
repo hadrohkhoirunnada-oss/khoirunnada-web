@@ -275,6 +275,7 @@ a {
    - Mengurangi efek GPU berat di HP/PWA.
    - Tampilan tetap dark-gold premium.
    - Tidak mengubah fitur, layout, route, atau data DB.
+   - Aman untuk teks drop-shadow, tidak membuat kotak cacat.
    ========================================================= */
 
 @media (display-mode: standalone), (max-width: 768px) {
@@ -342,7 +343,8 @@ a {
     opacity: 0.45 !important;
   }
 
-  [class*="shadow-"]:not([class*="shadow-inner"]) {
+  [class^="shadow-"]:not([class*="shadow-inner"]):not([class*="drop-shadow"]),
+  [class*=" shadow-"]:not([class*="shadow-inner"]):not([class*="drop-shadow"]) {
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34) !important;
   }
 
@@ -358,13 +360,19 @@ a {
   svg,
   video,
   canvas {
-    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   input,
   textarea,
   select {
     font-size: 16px;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
   }
 }
 
@@ -380,5 +388,38 @@ a {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+/* Extra mobile smoothness patch */
+@media (display-mode: standalone), (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [class*="transition"] {
+    transition-duration: 120ms !important;
+  }
+
+  [class*="duration-200"],
+  [class*="duration-300"],
+  [class*="duration-500"],
+  [class*="duration-700"],
+  [class*="duration-1000"] {
+    transition-duration: 120ms !important;
+  }
+
+  [class^="shadow-2xl"]:not([class*="drop-shadow"]),
+  [class*=" shadow-2xl"]:not([class*="drop-shadow"]),
+  [class^="shadow-xl"]:not([class*="drop-shadow"]),
+  [class*=" shadow-xl"]:not([class*="drop-shadow"]),
+  [class^="shadow-lg"]:not([class*="drop-shadow"]),
+  [class*=" shadow-lg"]:not([class*="drop-shadow"]) {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32) !important;
+  }
+
+  .khoirunnada-mobile-shell::before,
+  .khoirunnada-mobile-shell::after {
+    position: absolute;
   }
 }

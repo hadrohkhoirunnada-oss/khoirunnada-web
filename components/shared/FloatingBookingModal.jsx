@@ -23,16 +23,16 @@ const initialForm = {
 };
 
 const fieldClassName =
-  "mt-3 min-h-13 w-full rounded-2xl border border-amber-300/14 bg-black/38 px-4 text-sm font-semibold text-white shadow-lg shadow-black/20 outline-none backdrop-blur-xl transition placeholder:text-slate-500 focus:border-amber-300/45 focus:bg-black/48 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]";
+  "mt-3 min-h-13 w-full rounded-2xl border border-amber-300/14 bg-black/38 px-4 text-sm font-semibold text-white shadow-lg shadow-black/15 outline-none transition placeholder:text-slate-500 focus:border-amber-300/45 focus:bg-black/48 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]";
 
 const textareaClassName =
-  "mt-3 min-h-24 w-full resize-none rounded-2xl border border-amber-300/14 bg-black/38 px-4 py-3 text-sm font-semibold leading-7 text-white shadow-lg shadow-black/20 outline-none backdrop-blur-xl transition placeholder:text-slate-500 focus:border-amber-300/45 focus:bg-black/48 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]";
+  "mt-3 min-h-24 w-full resize-none rounded-2xl border border-amber-300/14 bg-black/38 px-4 py-3 text-sm font-semibold leading-7 text-white shadow-lg shadow-black/15 outline-none transition placeholder:text-slate-500 focus:border-amber-300/45 focus:bg-black/48 focus:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]";
 
 function FieldLabel({ htmlFor, children }) {
   return (
     <label
       htmlFor={htmlFor}
-      className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+      className="text-xs font-extrabold uppercase tracking-[0.28em] text-amber-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]"
     >
       {children}
     </label>
@@ -122,9 +122,10 @@ export default function FloatingBookingModal({ isOpen, onClose }) {
   const [contactSettings, setContactSettings] = useState(
     DEFAULT_SITE_CONTACT_SETTINGS
   );
-
   const [isLoadingContactSettings, setIsLoadingContactSettings] =
     useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState("");
+  const [form, setForm] = useState(initialForm);
 
   const fallbackAdmins = useMemo(() => {
     return bookingAdmins.filter((admin) => admin.isActive);
@@ -152,9 +153,6 @@ export default function FloatingBookingModal({ isOpen, onClose }) {
     return fallbackAdmins;
   }, [contactSettings, fallbackAdmins]);
 
-  const [selectedAdminId, setSelectedAdminId] = useState("");
-  const [form, setForm] = useState(initialForm);
-
   const selectedAdmin = useMemo(() => {
     return activeAdmins.find((admin) => admin.id === selectedAdminId);
   }, [activeAdmins, selectedAdminId]);
@@ -162,8 +160,21 @@ export default function FloatingBookingModal({ isOpen, onClose }) {
   const isOtherEventType = form.eventType === "Lainnya";
 
   useEffect(() => {
+    if (!isOpen || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) {
-      return;
+      return undefined;
     }
 
     let isMounted = true;
@@ -312,13 +323,13 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
         type="button"
         aria-label="Tutup popup booking"
         onClick={closeModal}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/65"
       />
 
-      <section className="relative z-10 max-h-[82dvh] w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-amber-300/14 bg-[#05070d]/96 shadow-[0_24px_80px_rgba(0,0,0,0.58)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.12),transparent_45%),linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012)_44%,rgba(0,0,0,0.24))]" />
+      <section className="relative z-10 max-h-[82dvh] w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-amber-300/14 bg-[#05070d]/98 shadow-2xl shadow-black/40">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.1),transparent_42%),linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01)_44%,rgba(0,0,0,0.2))]" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
-        <div className="pointer-events-none absolute inset-0 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_-1px_0_rgba(245,197,66,0.055)]" />
+        <div className="pointer-events-none absolute inset-0 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.075),inset_0_-1px_0_rgba(245,197,66,0.045)]" />
 
         <div className="relative z-10 flex max-h-[82dvh] flex-col">
           <div className="flex items-center justify-between gap-3 border-b border-amber-300/10 px-5 py-4">
@@ -340,7 +351,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
               type="button"
               onClick={closeModal}
               aria-label="Tutup popup"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-300/14 bg-black/35 text-amber-100 shadow-lg shadow-black/20 transition active:scale-[0.96]"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-300/14 bg-black/35 text-amber-100 shadow-lg shadow-black/15 transition active:scale-[0.96]"
             >
               <CloseIcon className="h-5 w-5" />
             </button>
@@ -354,7 +365,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                     key={admin.id}
                     type="button"
                     onClick={() => setSelectedAdminId(admin.id)}
-                    className="group flex w-full items-center justify-between gap-4 rounded-[1.35rem] border border-amber-300/12 bg-black/30 p-4 text-left shadow-lg shadow-black/20 transition active:scale-[0.99]"
+                    className="group flex w-full items-center justify-between gap-4 rounded-[1.35rem] border border-amber-300/12 bg-black/30 p-4 text-left shadow-lg shadow-black/15 transition active:scale-[0.99]"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/14 bg-emerald-400/10 text-[#25D366]">
@@ -398,9 +409,9 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
               <button
                 type="button"
                 onClick={() => setSelectedAdminId("")}
-                className="group relative flex min-h-[3.1rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-black/38 px-4 text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-lg shadow-black/25 backdrop-blur-2xl transition active:scale-[0.98]"
+                className="group relative flex min-h-[3.1rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-black/38 px-4 text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-lg shadow-black/15 transition active:scale-[0.98]"
               >
-                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(255,255,255,0.03)_40%,rgba(0,0,0,0.22))]" />
+                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(255,255,255,0.03)_40%,rgba(0,0,0,0.2))]" />
                 <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
                 <span className="relative flex items-center gap-3">
@@ -469,8 +480,8 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                 <div>
                   <FieldLabel htmlFor="floating-event-date">Tanggal</FieldLabel>
 
-                  <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/14 bg-black/38 shadow-lg shadow-black/20 backdrop-blur-xl transition focus-within:border-amber-300/45 focus-within:bg-black/48 focus-within:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]">
-                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_46%,rgba(0,0,0,0.18))]" />
+                  <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/14 bg-black/38 shadow-lg shadow-black/15 transition focus-within:border-amber-300/45 focus-within:bg-black/48 focus-within:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_46%,rgba(0,0,0,0.16))]" />
                     <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/30 to-transparent" />
 
                     <input
@@ -483,7 +494,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                       className="relative z-10 min-h-13 w-full bg-transparent px-3.5 pr-11 text-[0.82rem] font-extrabold tracking-[-0.03em] text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
                     />
 
-                    <span className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/14 bg-black/35 text-amber-100 shadow-inner shadow-black/25">
+                    <span className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/14 bg-black/35 text-amber-100 shadow-inner shadow-black/20">
                       <CalendarFieldIcon className="h-4 w-4" />
                     </span>
                   </div>
@@ -492,8 +503,8 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                 <div>
                   <FieldLabel htmlFor="floating-event-time">Waktu</FieldLabel>
 
-                  <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/14 bg-black/38 shadow-lg shadow-black/20 backdrop-blur-xl transition focus-within:border-amber-300/45 focus-within:bg-black/48 focus-within:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]">
-                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_46%,rgba(0,0,0,0.18))]" />
+                  <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/14 bg-black/38 shadow-lg shadow-black/15 transition focus-within:border-amber-300/45 focus-within:bg-black/48 focus-within:shadow-[0_0_0_3px_rgba(245,197,66,0.08)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.01)_46%,rgba(0,0,0,0.16))]" />
                     <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/30 to-transparent" />
 
                     <input
@@ -506,7 +517,7 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
                       className="relative z-10 min-h-13 w-full bg-transparent px-3.5 pr-11 text-[0.9rem] font-extrabold tracking-[-0.03em] text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
                     />
 
-                    <span className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/14 bg-black/35 text-amber-100 shadow-inner shadow-black/25">
+                    <span className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/14 bg-black/35 text-amber-100 shadow-inner shadow-black/20">
                       <ClockFieldIcon className="h-4 w-4" />
                     </span>
                   </div>
@@ -543,9 +554,9 @@ Wassalamu'alaikum Warahmatullahi Wabarakatuh.`;
 
               <button
                 type="submit"
-                className="group relative flex min-h-[3.35rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-black/38 px-4 text-sm font-extrabold text-white shadow-lg shadow-black/25 backdrop-blur-2xl transition active:scale-[0.98]"
+                className="group relative flex min-h-[3.35rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-amber-300/18 bg-black/38 px-4 text-sm font-extrabold text-white shadow-lg shadow-black/15 transition active:scale-[0.98]"
               >
-                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(255,255,255,0.03)_40%,rgba(0,0,0,0.22))]" />
+                <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(245,197,66,0.14),rgba(255,255,255,0.03)_40%,rgba(0,0,0,0.2))]" />
                 <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
                 <span className="relative flex items-center gap-3">
