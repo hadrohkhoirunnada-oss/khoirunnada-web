@@ -7,12 +7,18 @@ import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import {
   DEFAULT_SITE_CONTACT_SETTINGS,
   getSiteContactSettings,
+  normalizeWhatsappAdmins,
   normalizeWhatsappNumber,
 } from "@/services/siteSettingsService";
 
 function CloseIcon({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+    >
       <path
         d="m7.25 7.25 9.5 9.5M16.75 7.25l-9.5 9.5"
         stroke="currentColor"
@@ -25,7 +31,12 @@ function CloseIcon({ className = "" }) {
 
 function ProductIcon({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+    >
       <path
         d="m4.75 8.25 7.25-4 7.25 4-7.25 4-7.25-4Z"
         stroke="currentColor"
@@ -44,7 +55,12 @@ function ProductIcon({ className = "" }) {
 
 function StockIcon({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+    >
       <path
         d="m4.75 8.25 7.25-4 7.25 4-7.25 4-7.25-4Z"
         stroke="currentColor"
@@ -63,7 +79,12 @@ function StockIcon({ className = "" }) {
 
 function WhatsAppIcon({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+    >
       <path
         d="M12 4.25a7.58 7.58 0 0 0-6.5 11.47l-.72 3.5 3.58-.83A7.58 7.58 0 1 0 12 4.25Z"
         stroke="currentColor"
@@ -74,6 +95,25 @@ function WhatsAppIcon({ className = "" }) {
       <path
         d="M9.35 8.85c.18-.4.36-.42.58-.42h.45c.15 0 .36.05.55.43.2.38.65 1.3.7 1.4.05.1.08.23.02.36-.07.14-.1.22-.22.35l-.33.38c-.1.12-.22.24-.1.45.12.22.55.9 1.18 1.45.82.73 1.48.96 1.7 1.07.22.1.35.08.48-.05.15-.17.55-.65.7-.88.15-.22.3-.18.5-.1.22.08 1.36.64 1.6.76.23.12.38.18.43.28.05.1.05.58-.13 1.13-.18.55-1.05 1.05-1.45 1.1-.38.05-.88.08-2.84-.75-2.4-1.02-3.92-3.5-4.04-3.66-.12-.15-.96-1.27-.96-2.42 0-1.15.6-1.72.82-1.95.2-.23.45-.3.6-.3"
         fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+    >
+      <path
+        d="m7.75 9.75 4.25 4.5 4.25-4.5"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -136,6 +176,52 @@ function getMainBadge(product = {}) {
   return null;
 }
 
+function normalizeCheckoutAdmin(admin = {}, index = 0) {
+  const whatsappNumber = normalizeWhatsappNumber(admin.whatsappNumber);
+
+  if (!whatsappNumber) {
+    return null;
+  }
+
+  return {
+    id: admin.id || `checkout-admin-${whatsappNumber}-${index}`,
+    name: admin.name || `Admin ${index + 1}`,
+    whatsappNumber,
+    isActive: admin.isActive !== false,
+  };
+}
+
+function buildCheckoutAdmins(contactSettings = {}, fallbackAdmins = []) {
+  const firestoreAdmins = normalizeWhatsappAdmins(
+    contactSettings.whatsappAdmins,
+    contactSettings
+  )
+    .map((admin, index) => normalizeCheckoutAdmin(admin, index))
+    .filter(Boolean)
+    .filter((admin) => admin.isActive);
+
+  if (firestoreAdmins.length > 0) {
+    return firestoreAdmins;
+  }
+
+  const legacyWhatsappNumber = normalizeWhatsappNumber(
+    contactSettings.whatsappNumber
+  );
+
+  if (legacyWhatsappNumber) {
+    return [
+      {
+        id: `legacy-admin-${legacyWhatsappNumber}`,
+        name: contactSettings.adminName || "Admin Khoirunnada",
+        whatsappNumber: legacyWhatsappNumber,
+        isActive: true,
+      },
+    ];
+  }
+
+  return fallbackAdmins;
+}
+
 function buildCheckoutMessage({ product, adminName }) {
   return `Assalamu'alaikum Warahmatullahi Wabarakatuh.
 
@@ -160,6 +246,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
   const [contactSettings, setContactSettings] = useState(
     DEFAULT_SITE_CONTACT_SETTINGS
   );
+  const [selectedCheckoutAdminId, setSelectedCheckoutAdminId] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -198,7 +285,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
 
   useEffect(() => {
     if (!isOpen) {
-      return;
+      return undefined;
     }
 
     let isMountedEffect = true;
@@ -234,46 +321,44 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
   const fallbackAdmins = useMemo(() => {
     return bookingAdmins
       .filter((admin) => admin?.isActive !== false)
-      .map((admin) => ({
-        id: admin.id,
-        name: admin.name || "Admin Khoirunnada",
-        whatsappNumber: normalizeWhatsappNumber(admin.whatsappNumber),
-      }))
-      .filter((admin) => admin.whatsappNumber);
+      .map((admin, index) => normalizeCheckoutAdmin(admin, index))
+      .filter(Boolean);
   }, []);
 
   const checkoutAdmins = useMemo(() => {
-    const singleWhatsappNumber = normalizeWhatsappNumber(
-      contactSettings.whatsappNumber
+    return buildCheckoutAdmins(contactSettings, fallbackAdmins);
+  }, [contactSettings, fallbackAdmins]);
+
+  useEffect(() => {
+    if (!isOpen || checkoutAdmins.length === 0) {
+      return;
+    }
+
+    const selectedAdminStillAvailable = checkoutAdmins.some(
+      (admin) => admin.id === selectedCheckoutAdminId
     );
 
-    if (singleWhatsappNumber) {
-      return [
-        {
-          id: "site-whatsapp-admin",
-          name: contactSettings.adminName || "Admin Khoirunnada",
-          whatsappNumber: singleWhatsappNumber,
-        },
-      ];
+    if (!selectedAdminStillAvailable) {
+      setSelectedCheckoutAdminId(checkoutAdmins[0].id);
+    }
+  }, [isOpen, checkoutAdmins, selectedCheckoutAdminId]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCheckoutAdminId("");
+    }
+  }, [isOpen]);
+
+  const selectedCheckoutAdmin = useMemo(() => {
+    if (checkoutAdmins.length === 0) {
+      return null;
     }
 
-    const whatsappAdmins = Array.isArray(contactSettings.whatsappAdmins)
-      ? contactSettings.whatsappAdmins
-          .filter((admin) => admin?.isActive !== false)
-          .map((admin) => ({
-            id: admin.id,
-            name: admin.name || "Admin Khoirunnada",
-            whatsappNumber: normalizeWhatsappNumber(admin.whatsappNumber),
-          }))
-          .filter((admin) => admin.whatsappNumber)
-      : [];
-
-    if (whatsappAdmins.length > 0) {
-      return whatsappAdmins;
-    }
-
-    return fallbackAdmins;
-  }, [contactSettings, fallbackAdmins]);
+    return (
+      checkoutAdmins.find((admin) => admin.id === selectedCheckoutAdminId) ||
+      checkoutAdmins[0]
+    );
+  }, [checkoutAdmins, selectedCheckoutAdminId]);
 
   if (!isMounted || !isOpen || !product) {
     return null;
@@ -288,7 +373,6 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
     "Belum ada deskripsi produk.";
   const stockLabel = getStockLabel(product.stock);
   const price = product.price || "Hubungi Admin";
-  const checkoutAdmin = checkoutAdmins[0];
   const isOutOfStock = isProductOutOfStock(product);
   const isComingSoon = isProductComingSoon(product);
   const mainBadge = getMainBadge(product);
@@ -309,13 +393,13 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
       return;
     }
 
-    if (!checkoutAdmin?.whatsappNumber) {
+    if (!selectedCheckoutAdmin?.whatsappNumber) {
       alert("Nomor WhatsApp admin belum tersedia.");
       return;
     }
 
     const whatsappUrl = buildWhatsAppUrl({
-      phone: checkoutAdmin.whatsappNumber,
+      phone: selectedCheckoutAdmin.whatsappNumber,
       message: buildCheckoutMessage({
         product: {
           ...product,
@@ -323,7 +407,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
           price,
           discountLabel,
         },
-        adminName: checkoutAdmin.name,
+        adminName: selectedCheckoutAdmin.name,
       }),
     });
 
@@ -437,6 +521,55 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
                   {stockLabel}
                 </p>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-300/12 bg-black/30 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/14 bg-emerald-400/10 text-[#25D366]">
+                  <WhatsAppIcon className="h-5 w-5" />
+                </span>
+
+                <div className="min-w-0">
+                  <p className="text-[0.64rem] font-extrabold uppercase tracking-[0.22em] text-amber-300">
+                    Admin Tujuan
+                  </p>
+
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+                    Pilih admin yang akan menerima checkout produk.
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative mt-4">
+                <select
+                  value={selectedCheckoutAdmin?.id || ""}
+                  onChange={(event) =>
+                    setSelectedCheckoutAdminId(event.target.value)
+                  }
+                  disabled={checkoutAdmins.length === 0}
+                  className="min-h-12 w-full appearance-none rounded-2xl border border-amber-300/14 bg-black/40 px-4 pr-11 text-sm font-black text-white outline-none transition [color-scheme:dark] focus:border-amber-300/45 focus:bg-black/55 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {checkoutAdmins.length > 0 ? (
+                    checkoutAdmins.map((admin) => (
+                      <option key={admin.id} value={admin.id}>
+                        {admin.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Admin belum tersedia</option>
+                  )}
+                </select>
+
+                <span className="pointer-events-none absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/14 bg-black/35 text-amber-100">
+                  <ChevronIcon className="h-4 w-4" />
+                </span>
+              </div>
+
+              {selectedCheckoutAdmin?.whatsappNumber ? (
+                <p className="mt-3 break-all text-xs font-semibold leading-5 text-slate-500">
+                  Nomor tujuan: {selectedCheckoutAdmin.whatsappNumber}
+                </p>
+              ) : null}
             </div>
 
             <button
